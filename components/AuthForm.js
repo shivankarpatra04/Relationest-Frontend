@@ -18,7 +18,7 @@ const AuthForm = ({ mode }) => {
                 ? { username, email, password }
                 : { email, password };
 
-            const response = await fetch(`${API_URL}/api/auth/${endpoint}`, {
+            const response = await fetch(`${API_URL}/auth/${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
