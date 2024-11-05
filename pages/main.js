@@ -108,7 +108,8 @@ export default function MainPage() {
                 submissionData,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
                     },
                 }
             );
@@ -123,7 +124,13 @@ export default function MainPage() {
             }
         } catch (error) {
             console.error('Error submitting form:', error);
-            setError('Failed to get response from AI. Please try again.');
+            if (error.response && error.response.status === 401) {
+                setError('Invalid or expired token. Please login again.');
+                localStorage.removeItem('token');
+                router.push('/login');
+            } else {
+                setError('Failed to get response from AI. Please try again.');
+            }
         }
         setLoading(false);
     };
