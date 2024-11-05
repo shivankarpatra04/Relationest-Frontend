@@ -10,12 +10,12 @@ const nextConfig = {
                         key: 'Content-Security-Policy',
                         value: [
                             "default-src 'self'",
-                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' 'inline-speculation-rules'",
+                            "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' 'inline-speculation-rules' https://vercel.live",
                             "style-src 'self' 'unsafe-inline'",
                             "img-src 'self' data: blob: https:",
                             "font-src 'self'",
                             "connect-src 'self' http://localhost:* https: ws: wss:",
-                            "frame-src 'self'",
+                            "frame-src 'self' https://vercel.live",
                             "media-src 'self'",
                             "object-src 'none'"
                         ].join('; ')
@@ -50,5 +50,4 @@ const nextConfig = {
     },
     // Add any other Next.js config options you need here
 };
-
 export default nextConfig;
