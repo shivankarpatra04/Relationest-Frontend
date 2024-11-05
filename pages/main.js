@@ -56,7 +56,7 @@ export default function MainPage() {
             try {
                 jwtDecode(token);
             } catch (error) {
-                router.push('/login');
+                router.push('/main');
             }
         }
     }, [router]);
