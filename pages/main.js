@@ -101,7 +101,7 @@ export default function MainPage() {
             };
 
             const res = await axios.post(
-                'http://localhost:5000/api/chat/submit-form',
+                `${process.env.NEXT_PUBLIC_API_URL}/api/chat/submit-form`,
                 submissionData,
                 {
                     headers: {
@@ -139,7 +139,7 @@ export default function MainPage() {
             };
 
             const res = await axios.post(
-                'http://localhost:5000/api/chat/continue',
+                `${process.env.NEXT_PUBLIC_API_URL}/api/chat/continue`,
                 continueChatData,
                 {
                     headers: {
@@ -147,7 +147,6 @@ export default function MainPage() {
                     },
                 }
             );
-
             if (res.data && res.data.aiResponse) {
                 animateResponse(res.data.aiResponse);
                 setFollowUpMessage('');
