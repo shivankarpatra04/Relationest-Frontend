@@ -8,7 +8,7 @@ const AuthForm = ({ mode }) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const router = useRouter(); // Initialize router
+    const router = useRouter();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -25,16 +25,22 @@ const AuthForm = ({ mode }) => {
                 },
                 body: JSON.stringify(payload),
             });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Authentication failed');
+            }
+
             const data = await response.json();
 
-            // Store the token in localStorage
-            localStorage.setItem('token', data.token);
-
-            // Redirect to the main page
-            router.push('/main');
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+                router.push('/main');
+            } else {
+                throw new Error('No token received from server');
+            }
         } catch (error) {
-            const errorMessage = error.response?.data?.message || 'Authentication failed. Please try again.';
-            toast.error(errorMessage);
+            toast.error(error.message || 'Authentication failed. Please try again.');
         }
     };
 
