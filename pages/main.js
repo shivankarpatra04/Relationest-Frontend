@@ -6,8 +6,6 @@ import TypingResponse from '../components/TypingResponse';
 
 export default function MainPage() {
     const router = useRouter();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://relationest-backend.vercel.app';
-
     const [formData, setFormData] = useState({
         name: '',
         partnerName: '',
@@ -41,6 +39,9 @@ export default function MainPage() {
         'Other'
     ];
 
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://relationest-backend.vercel.app';
+
     const [response, setResponse] = useState('');
     const [loading, setLoading] = useState(false);
     const [animatedText, setAnimatedText] = useState('');
@@ -72,12 +73,14 @@ export default function MainPage() {
             setFormData((prev) => ({
                 ...prev,
                 selectedConcern: value,
+                // Clear custom concern text if a predefined option is selected
                 concern: value === 'Other' ? prev.concern : value
             }));
         } else {
             setFormData((prev) => ({ ...prev, [name]: value }));
         }
     };
+
 
     const getToken = () => {
         const token = localStorage.getItem('token');
@@ -86,7 +89,6 @@ export default function MainPage() {
         }
         return token;
     };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -111,22 +113,20 @@ export default function MainPage() {
                 }
             );
 
+            console.log('Server Response:', res.data);
+            console.log('Messages:', res.data.messages);
+
             if (res.data && res.data.messages) {
+                console.log('AI Text:', res.data.messages[1].text);
                 animateResponse(res.data.messages[1].text);
                 setChatId(res.data._id);
             }
         } catch (error) {
-            if (error.response && error.response.status === 401) {
-                setError('Session expired. Please log in again.');
-                router.push('/login');
-            } else {
-                setError('Failed to get response from AI. Please try again.');
-            }
             console.error('Error submitting form:', error);
+            setError('Failed to get response from AI. Please try again.');
         }
         setLoading(false);
     };
-
     const handleContinueChat = async () => {
         setLoading(true);
         setResponse('');
@@ -150,7 +150,6 @@ export default function MainPage() {
                     },
                 }
             );
-
             if (res.data && res.data.aiResponse) {
                 animateResponse(res.data.aiResponse);
                 setFollowUpMessage('');
@@ -158,27 +157,27 @@ export default function MainPage() {
                 throw new Error('Invalid response from server');
             }
         } catch (error) {
+            console.error('Error continuing chat:', error);
             if (error.message === 'No token found') {
                 setError('Please login to continue');
-                router.push('/login');
-            } else if (error.response && error.response.status === 401) {
-                setError('Session expired. Please log in again.');
                 router.push('/login');
             } else {
                 setError('Failed to get response from AI. Please try again.');
             }
-            console.error('Error continuing chat:', error);
         }
         setLoading(false);
     };
 
     const animateResponse = (text) => {
+        console.log('Animated text:', text);
         setAnimatedText(text);
         setResponse('');
     };
 
+
     return (
         <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-slate-100">
+            {/* Header */}
             <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
                 <div className="container mx-auto px-4">
                     <nav className="flex justify-between items-center h-16">
@@ -291,83 +290,127 @@ export default function MainPage() {
                             </div>
                         </div>
 
-                        <div>
-                            <label htmlFor="selectedConcern" className="block mb-2 text-sm font-medium text-slate-600">
-                                Select Concern
-                            </label>
+                        <div className="space-y-4">
                             <select
                                 name="selectedConcern"
                                 value={formData.selectedConcern}
                                 onChange={handleInputChange}
-                                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors"
+                                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors bg-white"
+                                required
                             >
-                                {concernTypes.map((concern) => (
-                                    <option key={concern} value={concern}>
-                                        {concern}
+                                <option value="">Select your concern</option>
+                                {concernTypes.map((type) => (
+                                    <option key={type} value={type}>
+                                        {type}
                                     </option>
                                 ))}
                             </select>
-                        </div>
 
-                        {formData.selectedConcern === 'Other' && (
-                            <textarea
-                                name="concern"
-                                value={formData.concern}
-                                onChange={handleInputChange}
-                                placeholder="Describe your concern"
-                                className="w-full h-24 px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors"
-                                required
-                            />
-                        )}
+                            {formData.selectedConcern === 'Other' && (
+                                <textarea
+                                    name="concern"
+                                    value={formData.concern}
+                                    onChange={handleInputChange}
+                                    placeholder="Please describe your concern..."
+                                    className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors min-h-[120px]"
+                                    required
+                                />
+                            )}
+                        </div>
 
                         <textarea
                             name="message"
                             value={formData.message}
                             onChange={handleInputChange}
-                            placeholder="Write your message"
-                            className="w-full h-32 px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors"
+                            placeholder="Your message..."
+                            className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors min-h-[80px]"
                             required
                         />
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full py-2 text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
-                        >
-                            {loading ? 'Loading...' : 'Submit'}
-                        </button>
+
+                        <div className="flex justify-center">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className={`
+                                    px-8 py-3 rounded-lg text-white font-medium
+                                    bg-gradient-to-r from-rose-500 to-purple-600
+                                    hover:from-rose-600 hover:to-purple-700
+                                    focus:ring-2 focus:ring-purple-500 focus:ring-offset-2
+                                    transform transition-all
+                                    disabled:opacity-50 disabled:cursor-not-allowed
+                                    flex items-center space-x-2
+                                `}
+                            >
+                                {loading ? (
+                                    <span className="inline-flex items-center">
+                                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Processing...
+                                    </span>
+                                ) : (
+                                    'Get Advice'
+                                )}
+                            </button>
+                        </div>
                     </form>
-                    {error && <p className="mt-4 text-red-500">{error}</p>}
                 </div>
 
-                {response && (
-                    <div className="bg-white rounded-lg shadow-lg p-6 mt-8">
-                        <TypingResponse text={animatedText} />
+                {/* Error Message */}
+                {error && (
+                    <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                        <p className="text-red-700">{error}</p>
                     </div>
                 )}
 
-                {chatId && (
-                    <div className="bg-slate-50 rounded-lg p-6 mt-8">
-                        <h3 className="text-lg font-medium text-slate-700 mb-4">Continue Chat</h3>
-                        <textarea
-                            value={followUpMessage}
-                            onChange={(e) => setFollowUpMessage(e.target.value)}
-                            placeholder="Write your follow-up message"
-                            className="w-full h-24 px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors"
+                {/* AI Response */}
+                {(animatedText || response) && (
+                    <div className="mb-8 bg-white rounded-lg shadow-lg p-6">
+                        <h2 className="text-2xl font-semibold text-slate-800 mb-4">AI Response</h2>
+
+                        <TypingResponse
+                            text={animatedText}
+                            onComplete={() => setResponse(animatedText)}
                         />
-                        <button
-                            onClick={handleContinueChat}
-                            disabled={loading}
-                            className="w-full mt-4 py-2 text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
-                        >
-                            {loading ? 'Loading...' : 'Send'}
-                        </button>
+
+                        {response && (
+                            <div className="space-y-4">
+                                <textarea
+                                    value={followUpMessage}
+                                    onChange={(e) => setFollowUpMessage(e.target.value)}
+                                    placeholder="Your follow-up message..."
+                                    className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors min-h-[100px]"
+                                />
+                                <button
+                                    onClick={handleContinueChat}
+                                    disabled={loading || !followUpMessage}
+                                    className={`
+                        px-6 py-2 rounded-lg text-white font-medium
+                        bg-purple-600 hover:bg-purple-700
+                        focus:ring-2 focus:ring-purple-500 focus:ring-offset-2
+                        transform transition-all
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                        flex items-center space-x-2
+                    `}
+                                >
+                                    {loading ? (
+                                        <span className="inline-flex items-center">
+                                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Processing...
+                                        </span>
+                                    ) : (
+                                        'Continue Chat'
+                                    )}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </main>
-
-            <footer className="bg-slate-100 border-t border-slate-200 py-6 text-center text-slate-500 text-sm">
-                &copy; {new Date().getFullYear()} RelatioNest. All rights reserved.
-            </footer>
         </div>
     );
 }
