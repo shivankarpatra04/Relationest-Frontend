@@ -39,8 +39,7 @@ export default function ContactPage() {
                 return;
             }
 
-            const response = await axios.post('http://localhost:5000/api/contact/submit', formData);
-
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/contact/submit`, formData);
             if (response.data.success) {
                 setMessage({
                     type: 'success',

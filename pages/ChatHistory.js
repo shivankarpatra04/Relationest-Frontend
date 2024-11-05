@@ -26,7 +26,7 @@ const ChatHistory = () => {
         setLoading(true);
         try {
             const token = getToken();
-            const res = await axios.get('http://localhost:5000/api/chat/chats', {
+            const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/chat/chats`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -42,7 +42,7 @@ const ChatHistory = () => {
     const handleChatClick = async (chatId) => {
         try {
             const token = getToken();
-            const res = await axios.get(`http://localhost:5000/api/chat/chats/${chatId}`, {
+            const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/chat/chats/${chatId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -59,7 +59,7 @@ const ChatHistory = () => {
         if (window.confirm('Are you sure you want to delete this chat?')) {
             try {
                 const token = getToken();
-                await axios.delete(`http://localhost:5000/api/chat/chats/${chatId}`, {
+                await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/chat/chats/${chatId}`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
