@@ -48,8 +48,8 @@ const AuthForm = ({ mode }) => {
             // Log successful authentication
             console.log('Authentication successful');
 
-            // Redirect to main page
-            router.push('/main');
+            // Redirect to main page using replace to prevent going back to login
+            await router.replace('/main');
 
             // Show success message
             toast.success(`Successfully ${mode === 'signup' ? 'registered' : 'logged in'}!`);
