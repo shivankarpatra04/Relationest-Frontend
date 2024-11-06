@@ -4,10 +4,6 @@ import jwtDecode from 'jwt-decode';
 import axios from 'axios';
 import TypingResponse from '../components/TypingResponse';
 
-const getToken = () => localStorage.getItem('token');
-const setToken = (token) => localStorage.setItem('token', token);
-const removeToken = () => localStorage.removeItem('token');
-
 export default function MainPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({
@@ -55,7 +51,7 @@ export default function MainPage() {
 
     axios.interceptors.request.use(
         (config) => {
-            const token = getToken();
+            const token = localStorage.getItem('authToken');
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
@@ -86,6 +82,33 @@ export default function MainPage() {
         }
     }, [router]);
 
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        if (['gemini', 'openai', 'anthropic'].includes(name)) {
+            setFormData((prev) => ({
+                ...prev,
+                apiKey: { ...prev.apiKey, [name]: value }
+            }));
+        } else if (name === 'selectedConcern') {
+            setFormData((prev) => ({
+                ...prev,
+                selectedConcern: value,
+                // Clear custom concern text if a predefined option is selected
+                concern: value === 'Other' ? prev.concern : value
+            }));
+        } else {
+            setFormData((prev) => ({ ...prev, [name]: value }));
+        }
+    };
+
+
+    const getToken = () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('No token found');
+        }
+        return token;
+    };
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -93,7 +116,7 @@ export default function MainPage() {
         setAnimatedText('');
         setError('');
 
-        const token = getToken();
+        const token = localStorage.getItem('authToken'); // Changed from 'token' to 'authToken'
 
         if (!token) {
             setError('Please login first');
@@ -112,28 +135,34 @@ export default function MainPage() {
                 apiKey: formData.apiKey
             };
 
-            const res = await axios.post(
-                `${apiUrl}/api/chat/submit-form`,
-                submissionData,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            const res = await fetch(`${API_URL}/api/chat/submit-form`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(submissionData)
+            });
 
-            setResponse(res.data);
+            if (!res.ok) {
+                const errorData = await res.json();
+                if (res.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('authToken');
+                    router.push('/login');
+                    throw new Error('Session expired. Please login again.');
+                }
+                throw new Error(errorData.message || 'Failed to submit chat');
+            }
+
+            const data = await res.json();
+            setResponse(data);
+            toast.success('Message submitted successfully!');
 
         } catch (error) {
             console.error('Submit error:', error);
-            if (error.response?.status === 401) {
-                removeToken();
-                router.push('/login');
-                setError('Session expired. Please login again.');
-            } else {
-                setError(error.response?.data?.message || 'An error occurred');
-            }
+            setError(error.message || 'An error occurred');
+            toast.error(error.message || 'Failed to submit message');
         } finally {
             setLoading(false);
         }
@@ -146,16 +175,8 @@ export default function MainPage() {
         setAnimatedText('');
         setError('');
 
-        const token = getToken();
-
-        if (!token) {
-            setError('Please login first');
-            setLoading(false);
-            router.push('/login');
-            return;
-        }
-
         try {
+            const token = getToken();
             const continueChatData = {
                 chatId,
                 followUpMessage,
@@ -167,11 +188,10 @@ export default function MainPage() {
                 continueChatData,
                 {
                     headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                        Authorization: `Bearer ${token}`,
+                    },
                 }
             );
-
             if (res.data && res.data.aiResponse) {
                 animateResponse(res.data.aiResponse);
                 setFollowUpMessage('');
@@ -180,16 +200,20 @@ export default function MainPage() {
             }
         } catch (error) {
             console.error('Error continuing chat:', error);
-            if (error.response?.status === 401) {
-                removeToken();
+            if (error.message === 'No token found') {
+                setError('Please login to continue');
                 router.push('/login');
-                setError('Session expired. Please login again.');
             } else {
                 setError('Failed to get response from AI. Please try again.');
             }
-        } finally {
-            setLoading(false);
         }
+        setLoading(false);
+    };
+
+    const animateResponse = (text) => {
+        console.log('Animated text:', text);
+        setAnimatedText(text);
+        setResponse('');
     };
 
 
