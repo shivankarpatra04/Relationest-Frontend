@@ -96,49 +96,59 @@ export default function MainPage() {
         setAnimatedText('');
         setError('');
 
-        try {
-            const token = getToken();
+        const token = localStorage.getItem('authToken'); // Changed from 'token' to 'authToken'
 
-            // Match the expected payload structure from chatController.submitChat
+        if (!token) {
+            setError('Please login first');
+            setLoading(false);
+            router.push('/login');
+            return;
+        }
+
+        try {
             const submissionData = {
                 partnerName: formData.partnerName,
                 name: formData.name,
                 age: formData.age,
                 concern: formData.selectedConcern === 'Other' ? formData.concern : formData.selectedConcern,
                 message: formData.message,
-                apiKey: formData.apiKey // Optional
+                apiKey: formData.apiKey
             };
 
-            const res = await axios.post(
-                `${apiUrl}/api/chat/submit-form`,  // Updated endpoint to match chatController
-                submissionData,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                }
-            );
+            const res = await fetch(`${API_URL}/api/chat/submit-form`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(submissionData)
+            });
 
-            if (res.data && res.data.messages && res.data.messages.length >= 2) {
-                const aiResponse = res.data.messages[1].text;
-                animateResponse(aiResponse);
-                setChatId(res.data._id);
+            if (!res.ok) {
+                const errorData = await res.json();
+                if (res.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('authToken');
+                    router.push('/login');
+                    throw new Error('Session expired. Please login again.');
+                }
+                throw new Error(errorData.message || 'Failed to submit chat');
             }
+
+            const data = await res.json();
+            setResponse(data);
+            toast.success('Message submitted successfully!');
 
         } catch (error) {
-            console.error('Error submitting form:', error);
-            if (error.response?.status === 401) {
-                setError('Please login to continue');
-                localStorage.removeItem('token');
-                router.push('/login');
-            } else {
-                setError('Unable to process your request. Please try again.');
-            }
+            console.error('Submit error:', error);
+            setError(error.message || 'An error occurred');
+            toast.error(error.message || 'Failed to submit message');
         } finally {
             setLoading(false);
         }
     };
+
+
     const handleContinueChat = async () => {
         setLoading(true);
         setResponse('');

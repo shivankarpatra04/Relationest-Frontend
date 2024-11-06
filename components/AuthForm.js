@@ -26,23 +26,59 @@ const AuthForm = ({ mode }) => {
                 body: JSON.stringify(payload),
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Authentication failed');
-            }
-
+            // Parse response data first
             const data = await response.json();
 
-            if (data.token) {
-                localStorage.setItem('token', data.token);
-                router.push('/main');
-            } else {
+            if (!response.ok) {
+                throw new Error(data.message || 'Authentication failed');
+            }
+
+            if (!data.token) {
                 throw new Error('No token received from server');
             }
+
+            // Store token in localStorage
+            localStorage.setItem('authToken', data.token); // Changed from 'token' to 'authToken' for consistency
+
+            // Optional: Store user data if available
+            if (data.user) {
+                localStorage.setItem('userData', JSON.stringify(data.user));
+            }
+
+            // Log successful authentication
+            console.log('Authentication successful');
+
+            // Redirect to main page
+            router.push('/main');
+
+            // Show success message
+            toast.success(`Successfully ${mode === 'signup' ? 'registered' : 'logged in'}!`);
+
         } catch (error) {
+            console.error('Authentication error:', error);
             toast.error(error.message || 'Authentication failed. Please try again.');
         }
     };
+
+    // Add a function to handle token retrieval (can be used across your app)
+    const getAuthToken = () => {
+        return localStorage.getItem('authToken');
+    };
+
+    // Add a function to check if user is authenticated
+    const isAuthenticated = () => {
+        const token = getAuthToken();
+        return !!token;
+    };
+
+    // Add a logout function
+    const handleLogout = () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        router.push('/login');
+        toast.success('Successfully logged out');
+    };
+
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
