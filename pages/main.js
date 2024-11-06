@@ -62,18 +62,18 @@ export default function MainPage() {
         }
     );
 
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            router.push('/login');
-        } else {
-            try {
-                jwtDecode(token);
-            } catch (error) {
-                router.push('/main');
-            }
-        }
-    }, [router]);
+    // useEffect(() => {
+    //     const token = localStorage.getItem('token');
+    //     if (!token) {
+    //         router.push('/login');
+    //     } else {
+    //         try {
+    //             jwtDecode(token);
+    //         } catch (error) {
+    //             router.push('/main');
+    //         }
+    //     }
+    // }, [router]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
