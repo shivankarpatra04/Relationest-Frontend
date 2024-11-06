@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -18,66 +19,35 @@ const AuthForm = ({ mode }) => {
                 ? { username, email, password }
                 : { email, password };
 
-            const response = await fetch(`${API_URL}/api/auth/${endpoint}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            });
+            const response = await axios.post(`${API_URL}/api/auth/${endpoint}`, payload);
 
-            // Parse response data first
-            const data = await response.json();
+            if (response.data.token) {
+                // Store token in localStorage
+                localStorage.setItem('token', response.data.token);
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Authentication failed');
-            }
+                // Optional: Store user data if available
+                if (response.data.user) {
+                    localStorage.setItem('userData', JSON.stringify(response.data.user));
+                }
 
-            if (!data.token) {
+                // Log successful authentication
+                console.log('Authentication successful');
+
+                // Redirect to main page using replace to prevent going back to login
+                await router.replace('/main');
+
+                // Show success message
+                toast.success(`Successfully ${mode === 'signup' ? 'registered' : 'logged in'}!`);
+            } else {
                 throw new Error('No token received from server');
             }
-
-            // Store token in localStorage
-            localStorage.setItem('authToken', data.token); // Changed from 'token' to 'authToken' for consistency
-
-            // Optional: Store user data if available
-            if (data.user) {
-                localStorage.setItem('userData', JSON.stringify(data.user));
-            }
-
-            // Log successful authentication
-            console.log('Authentication successful');
-
-            // Redirect to main page using replace to prevent going back to login
-            await router.replace('/main');
-
-            // Show success message
-            toast.success(`Successfully ${mode === 'signup' ? 'registered' : 'logged in'}!`);
-
         } catch (error) {
             console.error('Authentication error:', error);
-            toast.error(error.message || 'Authentication failed. Please try again.');
+            toast.error(error.response?.data?.message || 'Authentication failed. Please try again.');
         }
     };
 
-    // Add a function to handle token retrieval (can be used across your app)
-    const getAuthToken = () => {
-        return localStorage.getItem('authToken');
-    };
 
-    // Add a function to check if user is authenticated
-    const isAuthenticated = () => {
-        const token = getAuthToken();
-        return !!token;
-    };
-
-    // Add a logout function
-    const handleLogout = () => {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
-        router.push('/login');
-        toast.success('Successfully logged out');
-    };
 
 
     return (
