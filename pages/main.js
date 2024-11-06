@@ -98,13 +98,19 @@ export default function MainPage() {
 
         try {
             const token = getToken();
+
+            // Match the expected payload structure from chatController.submitChat
             const submissionData = {
-                ...formData,
-                concern: formData.selectedConcern === 'Other' ? formData.concern : formData.selectedConcern
+                partnerName: formData.partnerName,
+                name: formData.name,
+                age: formData.age,
+                concern: formData.selectedConcern === 'Other' ? formData.concern : formData.selectedConcern,
+                message: formData.message,
+                apiKey: formData.apiKey // Optional
             };
 
             const res = await axios.post(
-                `${apiUrl}/api/chat/submit-form`,
+                `${apiUrl}/api/chat/submit-form`,  // Updated endpoint to match chatController
                 submissionData,
                 {
                     headers: {
@@ -114,25 +120,24 @@ export default function MainPage() {
                 }
             );
 
-            console.log('Server Response:', res.data);
-            console.log('Messages:', res.data.messages);
-
-            if (res.data && res.data.messages) {
-                console.log('AI Text:', res.data.messages[1].text);
-                animateResponse(res.data.messages[1].text);
+            if (res.data && res.data.messages && res.data.messages.length >= 2) {
+                const aiResponse = res.data.messages[1].text;
+                animateResponse(aiResponse);
                 setChatId(res.data._id);
             }
+
         } catch (error) {
             console.error('Error submitting form:', error);
-            if (error.response && error.response.status === 401) {
-                setError('Invalid or expired token. Please login again.');
+            if (error.response?.status === 401) {
+                setError('Please login to continue');
                 localStorage.removeItem('token');
                 router.push('/login');
             } else {
-                setError('Failed to get response from AI. Please try again.');
+                setError('Unable to process your request. Please try again.');
             }
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
     const handleContinueChat = async () => {
         setLoading(true);
