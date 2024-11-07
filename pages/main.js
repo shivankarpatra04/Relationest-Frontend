@@ -4,7 +4,6 @@ import { jwtDecode } from "jwt-decode";
 import axios from 'axios';
 import TypingResponse from '../components/TypingResponse';
 import { getToken, setToken, removeToken, isAuthenticated } from '../utils/auth';
-import Layout from '../components/Layout';
 import Quote from '../components/Quote';
 import withAuth from '../utils/withAuth';
 
