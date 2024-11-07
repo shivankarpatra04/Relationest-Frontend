@@ -1,26 +1,16 @@
 import { useRouter } from 'next/router';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 export default function AboutPage() {
     const router = useRouter();
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col">
-            <header className="bg-white border-b border-slate-200">
-                <div className="container mx-auto px-4">
-                    <nav className="flex justify-between items-center h-16">
-                        <span onClick={() => router.push('/')}
-                            className="text-xl font-semibold bg-gradient-to-r from-rose-500 to-purple-600 bg-clip-text text-transparent cursor-pointer">
-                            RelatioNest
-                        </span>
-                        <div className="space-x-6">
-                            <button onClick={() => router.push('/')} className="text-slate-600 hover:text-slate-900">Home</button>
-                            <button onClick={() => router.push('/contact')} className="text-slate-600 hover:text-slate-900">Contact</button>
-                        </div>
-                    </nav>
-                </div>
-            </header>
+            {/* Use shared Navbar component */}
+            <Navbar />
 
-            <main className="container mx-auto px-4 py-16 max-w-4xl">
+            <main className="container mx-auto px-4 py-16 max-w-4xl flex-grow">
                 <div className="space-y-16">
                     <section className="text-center">
                         <h1 className="text-4xl font-bold text-slate-800 mb-6">About RelatioNest</h1>
@@ -64,12 +54,15 @@ export default function AboutPage() {
 
                     <section className="text-center">
                         <h2 className="text-2xl font-semibold text-slate-800 mb-6">Our Approach</h2>
-                        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                        <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-16">
                             We combine advanced AI technology with established relationship psychology principles to deliver personalized guidance that addresses the unique challenges each couple faces. Our platform adapts and learns to provide increasingly relevant advice over time.
                         </p>
                     </section>
                 </div>
             </main>
+
+            {/* Add Footer */}
+            <Footer />
         </div>
     );
 }
