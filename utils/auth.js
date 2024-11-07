@@ -1,5 +1,5 @@
 // utils/auth.js
-import { jwtDecode } from "jwt-decode"; // Updated import syntax
+import { jwtDecode } from "jwt-decode";
 
 export const setToken = (token) => {
     if (typeof window !== 'undefined') {
@@ -45,12 +45,28 @@ export const isAuthenticated = () => {
         if (!token) return false;
 
         try {
-            const decoded = jwtDecode(token); // Use imported jwtDecode
+            const decoded = jwtDecode(token);
+            // Check if token is expired
             return decoded.exp * 1000 > Date.now();
         } catch (error) {
-            console.error('Error checking authentication:', error);
+            console.error('Token validation error:', error);
             return false;
         }
     }
     return false;
+};
+
+export const getUserFromToken = () => {
+    if (typeof window !== 'undefined') {
+        const token = getToken();
+        if (!token) return null;
+
+        try {
+            return jwtDecode(token);
+        } catch (error) {
+            console.error('Error decoding token:', error);
+            return null;
+        }
+    }
+    return null;
 };
