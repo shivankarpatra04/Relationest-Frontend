@@ -17,7 +17,7 @@ function MyApp({ Component, pageProps }) {
         publicPaths: ['/login', '/register', '/'],
 
         // Pages that shouldn't show the navbar
-        pagesWithoutNavbar: ['/', '/login', '/register', '/about', '/faq', '/privacy', 'ChatHistory'],
+        pagesWithoutNavbar: ['/', '/login', '/register', '/about', '/faq', '/privacy', '/ChatHistory'],
 
         // Pages that shouldn't show the footer
         pagesWithoutFooter: ['/']
