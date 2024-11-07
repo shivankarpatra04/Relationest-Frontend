@@ -38,7 +38,6 @@ function MyApp({ Component, pageProps }) {
                 });
             }
         };
-
         // Check authentication on route change
         router.events.on('routeChangeStart', handleRouteChange);
 
