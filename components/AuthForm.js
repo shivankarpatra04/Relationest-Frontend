@@ -4,6 +4,8 @@ import { toast } from 'react-toastify';
 import { setToken } from '../utils/auth';
 import { Loader2 } from 'lucide-react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 const AuthForm = ({ mode }) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
