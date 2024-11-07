@@ -1,7 +1,7 @@
 // pages/_app.js
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import toast, { Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 import '../styles/globals.css';
 import Footer from '../components/Footer';
 import FloatingContactButton from '../components/FloatingContactButton';
@@ -28,14 +28,7 @@ function MyApp({ Component, pageProps }) {
         const handleRouteChange = (url) => {
             const path = url.split('?')[0];
             if (!config.publicPaths.includes(path) && !isAuthenticated()) {
-                // Display the message using react-hot-toast
-                toast.error(`You have to login to see ${path.slice(1)}`, {
-                    duration: 3000,
-                    position: 'top-center',
-                    onClose: () => {
-                        router.push('/login');
-                    },
-                });
+                router.push('/login');
             }
         };
 
@@ -44,14 +37,7 @@ function MyApp({ Component, pageProps }) {
 
         // Check authentication on initial load
         if (!config.publicPaths.includes(router.pathname) && !isAuthenticated()) {
-            // Display the message using react-hot-toast
-            toast.error(`You have to login to see ${router.pathname.slice(1)}`, {
-                duration: 3000,
-                position: 'top-center',
-                onClose: () => {
-                    router.push('/login');
-                },
-            });
+            router.push('/login');
         }
 
         // Cleanup event listener
@@ -128,5 +114,3 @@ function MyApp({ Component, pageProps }) {
         </div>
     );
 }
-
-export default MyApp;
