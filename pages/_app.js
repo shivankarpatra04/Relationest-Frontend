@@ -11,50 +11,62 @@ import { isAuthenticated } from '../utils/auth';
 function MyApp({ Component, pageProps }) {
     const router = useRouter();
 
-    // Pages that don't need authentication
-    const publicPaths = ['/login', '/register', '/'];
+    // Configuration for page layouts and authentication
+    const config = {
+        // Pages that don't need authentication
+        publicPaths: ['/login', '/register', '/', '/about', '/faq'],
 
-    // Check if current page is index/home page
-    const isHomePage = router.pathname === '/';
+        // Pages that shouldn't show the navbar
+        pagesWithoutNavbar: ['/', '/login', '/register'],
 
+        // Pages that shouldn't show the footer
+        pagesWithoutFooter: ['/']
+    };
+
+    // Authentication check
     useEffect(() => {
         const handleRouteChange = (url) => {
             const path = url.split('?')[0];
-            if (!publicPaths.includes(path)) {
-                if (!isAuthenticated()) {
-                    router.push('/login');
-                }
+            if (!config.publicPaths.includes(path) && !isAuthenticated()) {
+                router.push('/login');
             }
         };
 
+        // Check authentication on route change
         router.events.on('routeChangeStart', handleRouteChange);
 
-        if (!publicPaths.includes(router.pathname) && !isAuthenticated()) {
+        // Check authentication on initial load
+        if (!config.publicPaths.includes(router.pathname) && !isAuthenticated()) {
             router.push('/login');
         }
 
+        // Cleanup event listener
         return () => {
             router.events.off('routeChangeStart', handleRouteChange);
         };
-    }, [router, publicPaths]);
+    }, [router]);
+
+    // Layout visibility checks
+    const showNavbar = !config.pagesWithoutNavbar.includes(router.pathname);
+    const showFooter = !config.pagesWithoutFooter.includes(router.pathname);
 
     return (
-        <div className="flex flex-col min-h-screen">
-            {/* Show Navbar on all pages except index */}
-            {!isHomePage && <Navbar />}
+        <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+            {/* Conditional Navbar */}
+            {showNavbar && <Navbar />}
 
-            {/* Main content */}
+            {/* Main content with consistent padding */}
             <main className="flex-grow">
                 <Component {...pageProps} />
             </main>
 
-            {/* Show Footer on all pages except index */}
-            {!isHomePage && <Footer />}
+            {/* Conditional Footer */}
+            {showFooter && <Footer />}
 
-            {/* Always show FloatingContactButton */}
+            {/* Global Components */}
             <FloatingContactButton />
 
-            {/* Toast notifications */}
+            {/* Toast Notifications */}
             <Toaster
                 position="top-right"
                 toastOptions={{
@@ -63,17 +75,39 @@ function MyApp({ Component, pageProps }) {
                             background: '#10B981',
                             color: 'white',
                         },
+                        duration: 5000,
+                        iconTheme: {
+                            primary: 'white',
+                            secondary: '#10B981',
+                        },
                     },
                     error: {
                         style: {
                             background: '#EF4444',
                             color: 'white',
                         },
+                        duration: 5000,
+                        iconTheme: {
+                            primary: 'white',
+                            secondary: '#EF4444',
+                        },
                     },
-                    duration: 5000,
+                    loading: {
+                        style: {
+                            background: '#3B82F6',
+                            color: 'white',
+                        },
+                    },
+                    default: {
+                        style: {
+                            background: '#1F2937',
+                            color: 'white',
+                        },
+                    },
                     style: {
                         borderRadius: '8px',
                         padding: '16px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                     },
                 }}
             />
