@@ -1,42 +1,25 @@
 // utils/auth.js
 import { jwtDecode } from "jwt-decode";
+import toast from 'react-hot-toast';
+import Router from 'next/router';
 
 export const setToken = (token) => {
     if (typeof window !== 'undefined') {
-        try {
-            localStorage.setItem('token', token);
-            return true;
-        } catch (error) {
-            console.error('Error setting token:', error);
-            return false;
-        }
+        localStorage.setItem('token', token);
     }
-    return false;
 };
 
 export const getToken = () => {
     if (typeof window !== 'undefined') {
-        try {
-            return localStorage.getItem('token');
-        } catch (error) {
-            console.error('Error getting token:', error);
-            return null;
-        }
+        return localStorage.getItem('token');
     }
     return null;
 };
 
 export const removeToken = () => {
     if (typeof window !== 'undefined') {
-        try {
-            localStorage.removeItem('token');
-            return true;
-        } catch (error) {
-            console.error('Error removing token:', error);
-            return false;
-        }
+        localStorage.removeItem('token');
     }
-    return false;
 };
 
 export const isAuthenticated = () => {
@@ -46,27 +29,32 @@ export const isAuthenticated = () => {
 
         try {
             const decoded = jwtDecode(token);
-            // Check if token is expired
             return decoded.exp * 1000 > Date.now();
-        } catch (error) {
-            console.error('Token validation error:', error);
+        } catch {
             return false;
         }
     }
     return false;
 };
 
-export const getUserFromToken = () => {
-    if (typeof window !== 'undefined') {
-        const token = getToken();
-        if (!token) return null;
+// New utility function to handle protected routes
+export const handleProtectedRoute = (pathname) => {
+    if (!isAuthenticated()) {
+        // Get page name from pathname
+        const pageName = pathname.split('/').pop() || 'page';
+        const formattedPageName = pageName.charAt(0).toUpperCase() + pageName.slice(1);
 
-        try {
-            return jwtDecode(token);
-        } catch (error) {
-            console.error('Error decoding token:', error);
-            return null;
-        }
+        // Show toast message
+        toast.error(`You have to log in to see ${formattedPageName}`, {
+            duration: 3000,
+        });
+
+        // Redirect to login
+        Router.push({
+            pathname: '/login',
+            query: { returnUrl: pathname }, // Store the return URL
+        });
+        return false;
     }
-    return null;
+    return true;
 };
