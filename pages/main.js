@@ -3,11 +3,9 @@ import { useEffect, useState } from 'react';
 import jwtDecode from 'jwt-decode';
 import axios from 'axios';
 import TypingResponse from '../components/TypingResponse';
+import { getToken, setToken, removeToken, isAuthenticated } from '../utils/auth';
 
-// Token management utilities
-const getToken = () => localStorage.getItem('token');
-const setToken = (token) => localStorage.setItem('token', token);
-const removeToken = () => localStorage.removeItem('token');
+
 
 export default function MainPage() {
     const router = useRouter();
@@ -53,40 +51,35 @@ export default function MainPage() {
     const [followUpMessage, setFollowUpMessage] = useState('');
     const [error, setError] = useState('');
 
-    // Set up axios interceptor for authentication
-    axios.interceptors.request.use(
-        (config) => {
-            const token = getToken();
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            return config;
-        },
-        (error) => {
-            return Promise.reject(error);
-        }
-    );
 
     // Check authentication on component mount
     useEffect(() => {
-        const token = getToken();
-        if (!token) {
+        if (!isAuthenticated()) {
             router.push('/login');
             return;
         }
-
-        try {
-            const decoded = jwtDecode(token);
-            // Check if token is expired
-            if (decoded.exp * 1000 < Date.now()) {
-                removeToken();
-                router.push('/login');
-            }
-        } catch (error) {
-            removeToken();
-            router.push('/login');
-        }
     }, [router]);
+
+    // Update axios interceptor
+    useEffect(() => {
+        const interceptor = axios.interceptors.request.use(
+            (config) => {
+                const token = getToken();
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
+                return config;
+            },
+            (error) => {
+                return Promise.reject(error);
+            }
+        );
+
+        // Cleanup interceptor on component unmount
+        return () => {
+            axios.interceptors.request.eject(interceptor);
+        };
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -106,6 +99,7 @@ export default function MainPage() {
         }
     };
 
+    // Update handleSubmit
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -113,9 +107,7 @@ export default function MainPage() {
         setAnimatedText('');
         setError('');
 
-        const token = getToken();
-
-        if (!token) {
+        if (!isAuthenticated()) {
             setError('Please login first');
             setLoading(false);
             router.push('/login');
@@ -131,6 +123,9 @@ export default function MainPage() {
                 message: formData.message,
                 apiKey: formData.apiKey
             };
+
+            const token = getToken();
+            console.log('Using token for submission:', token); // Debug log
 
             const res = await axios.post(
                 `${apiUrl}/api/chat/submit-form`,

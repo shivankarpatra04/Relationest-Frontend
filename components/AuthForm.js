@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { setToken } from '../utils/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -19,31 +20,33 @@ const AuthForm = ({ mode }) => {
                 ? { username, email, password }
                 : { email, password };
 
-            const response = await axios.post(`${API_URL}/api/auth/${endpoint}`, payload);
+            const response = await fetch(`${API_URL}/api/auth/${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
 
-            if (response.data.token) {
-                // Store token in localStorage
-                localStorage.setItem('token', response.data.token);
+            const data = await response.json();
 
-                // Optional: Store user data if available
-                if (response.data.user) {
-                    localStorage.setItem('userData', JSON.stringify(response.data.user));
-                }
+            if (!response.ok) {
+                throw new Error(data.message || 'Authentication failed');
+            }
 
-                // Log successful authentication
-                console.log('Authentication successful');
-
-                // Redirect to main page using replace to prevent going back to login
-                await router.replace('/main');
-
-                // Show success message
-                toast.success(`Successfully ${mode === 'signup' ? 'registered' : 'logged in'}!`);
-            } else {
+            if (!data.token) {
                 throw new Error('No token received from server');
             }
+
+            // Set the token using the utility function
+            setToken(data.token);
+            console.log('Token set:', data.token); // Debug log
+
+            router.push('/main');
+            toast.success(`Successfully ${mode === 'signup' ? 'registered' : 'logged in'}!`);
         } catch (error) {
-            console.error('Authentication error:', error);
-            toast.error(error.response?.data?.message || 'Authentication failed. Please try again.');
+            console.error('Auth error:', error);
+            toast.error(error.message || 'Authentication failed. Please try again.');
         }
     };
 

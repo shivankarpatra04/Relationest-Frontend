@@ -1,28 +1,34 @@
 // utils/auth.js
 export const setToken = (token) => {
-    localStorage.setItem('authToken', token);
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('token', token);
+    }
 };
 
 export const getToken = () => {
-    return localStorage.getItem('authToken');
+    if (typeof window !== 'undefined') {
+        return localStorage.getItem('token');
+    }
+    return null;
 };
 
 export const removeToken = () => {
-    localStorage.setItem('authToken');
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+    }
 };
 
 export const isAuthenticated = () => {
-    const token = getToken();
-    return !!token;
-};
-export const isTokenExpired = (token) => {
-    if (!token) return true;
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const expiryTime = payload.exp * 1000; // Convert to milliseconds
-        return Date.now() >= expiryTime;
-    } catch (error) {
-        console.error('Token parsing error:', error);
-        return true;
+    if (typeof window !== 'undefined') {
+        const token = getToken();
+        if (!token) return false;
+
+        try {
+            const decoded = jwtDecode(token);
+            return decoded.exp * 1000 > Date.now();
+        } catch {
+            return false;
+        }
     }
+    return false;
 };
