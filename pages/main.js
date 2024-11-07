@@ -21,7 +21,23 @@ export default function MainPage() {
         }
     });
 
-    const concernTypes = [/* your concern types array */];
+    const concernTypes = [
+        'Communication Issues',
+        'Trust and Loyalty',
+        'Conflict Resolution',
+        'Commitment and Future Goals',
+        'Emotional Distance',
+        'Compatibility',
+        'Intimacy and Affection',
+        'Financial Stress',
+        'Personal Growth and Independence',
+        'Family or Social Influence',
+        'Mental Health and Well-being',
+        'Work-life Balance',
+        'Parenting and Family Planning',
+        'Long-Distance Relationship',
+        'Other'
+    ];
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://relationest-backend.vercel.app';
 
