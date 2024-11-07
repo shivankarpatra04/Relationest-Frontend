@@ -14,10 +14,10 @@ function MyApp({ Component, pageProps }) {
     // Configuration for page layouts and authentication
     const config = {
         // Pages that don't need authentication
-        publicPaths: ['/login', '/register', '/', '/about', '/faq'],
+        publicPaths: ['/login', '/register', '/'],
 
         // Pages that shouldn't show the navbar
-        pagesWithoutNavbar: ['/', '/login', '/register'],
+        pagesWithoutNavbar: ['/', '/login', '/register', '/about', '/faq', '/privacy', '/ChatHistory'],
 
         // Pages that shouldn't show the footer
         pagesWithoutFooter: ['/']
