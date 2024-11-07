@@ -5,15 +5,18 @@ import { Toaster } from 'react-hot-toast';
 import '../styles/globals.css';
 import Footer from '../components/Footer';
 import FloatingContactButton from '../components/FloatingContactButton';
-import Navbar from '../components/Navbar'; // Import the Navbar component
-import { isAuthenticated } from '../utils/auth'; // Import auth utility
+import Navbar from '../components/Navbar';
+import { isAuthenticated } from '../utils/auth';
 
 function MyApp({ Component, pageProps }) {
     const router = useRouter();
-    const publicPaths = ['/login', '/register', '/', '/about', '/faq']; // Add all public paths
+    // Pages that don't need authentication
+    const publicPaths = ['/login', '/register', '/', '/about', '/faq'];
+
+    // Pages that already have a navbar in their component
+    const pagesWithNavbar = ['/', '/main', '/ChatHistory'];
 
     useEffect(() => {
-        // Handle authentication on route changes
         const handleRouteChange = (url) => {
             const path = url.split('?')[0];
             if (!publicPaths.includes(path)) {
@@ -35,13 +38,17 @@ function MyApp({ Component, pageProps }) {
         };
     }, [router, publicPaths]);
 
-    // Determine if we should show the Navbar
-    const showNavbar = !publicPaths.includes(router.pathname) ||
-        (router.pathname !== '/login' && router.pathname !== '/register');
+    // Only show navbar if:
+    // 1. Not a public path (except about and faq)
+    // 2. Not a page that already has navbar
+    // 3. Not login or register page
+    const showNavbar = !pagesWithNavbar.includes(router.pathname) &&
+        router.pathname !== '/login' &&
+        router.pathname !== '/register';
 
     return (
         <div className="flex flex-col min-h-screen">
-            {/* Show Navbar conditionally */}
+            {/* Conditional Navbar */}
             {showNavbar && <Navbar />}
 
             {/* Main content */}
