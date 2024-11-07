@@ -1,15 +1,29 @@
 import { useRouter } from 'next/router';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 
 export default function AboutPage() {
     const router = useRouter();
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col">
-            {/* Use shared Navbar component */}
-            <Navbar />
-
+        <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-slate-100">
+            <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+                <div className="container mx-auto px-4">
+                    <nav className="flex justify-between items-center h-16">
+                        <div className="flex items-center space-x-2">
+                            <span onClick={() => router.push('/')} className="text-xl font-semibold bg-gradient-to-r from-rose-500 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80">
+                                RelatioNest
+                            </span>
+                        </div>
+                        <div className="flex items-center space-x-6">
+                            <button
+                                onClick={() => router.push('/main')}
+                                className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
+                            >
+                                Back to Main
+                            </button>
+                        </div>
+                    </nav>
+                </div>
+            </header>
             <main className="container mx-auto px-4 py-16 max-w-4xl flex-grow">
                 <div className="space-y-16">
                     <section className="text-center">
@@ -61,8 +75,6 @@ export default function AboutPage() {
                 </div>
             </main>
 
-            {/* Add Footer */}
-            <Footer />
         </div>
     );
 }
