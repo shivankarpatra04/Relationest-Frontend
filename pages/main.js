@@ -4,13 +4,18 @@ import jwtDecode from 'jwt-decode';
 import axios from 'axios';
 import TypingResponse from '../components/TypingResponse';
 
+// Token management utilities
+const getToken = () => localStorage.getItem('token');
+const setToken = (token) => localStorage.setItem('token', token);
+const removeToken = () => localStorage.removeItem('token');
+
 export default function MainPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({
         name: '',
         partnerName: '',
         concern: '',
-        selectedConcern: 'other', // New state for dropdown
+        selectedConcern: 'Other',
         message: '',
         age: '',
         apiKey: {
@@ -39,7 +44,6 @@ export default function MainPage() {
         'Other'
     ];
 
-
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://relationest-backend.vercel.app';
 
     const [response, setResponse] = useState('');
@@ -49,9 +53,10 @@ export default function MainPage() {
     const [followUpMessage, setFollowUpMessage] = useState('');
     const [error, setError] = useState('');
 
+    // Set up axios interceptor for authentication
     axios.interceptors.request.use(
         (config) => {
-            const token = localStorage.getItem('authToken');
+            const token = getToken();
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
@@ -62,6 +67,7 @@ export default function MainPage() {
         }
     );
 
+    // Check authentication on component mount
     useEffect(() => {
         const token = getToken();
         if (!token) {
@@ -93,7 +99,6 @@ export default function MainPage() {
             setFormData((prev) => ({
                 ...prev,
                 selectedConcern: value,
-                // Clear custom concern text if a predefined option is selected
                 concern: value === 'Other' ? prev.concern : value
             }));
         } else {
@@ -101,14 +106,6 @@ export default function MainPage() {
         }
     };
 
-
-    const getToken = () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            throw new Error('No token found');
-        }
-        return token;
-    };
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -116,7 +113,7 @@ export default function MainPage() {
         setAnimatedText('');
         setError('');
 
-        const token = localStorage.getItem('authToken'); // Changed from 'token' to 'authToken'
+        const token = getToken();
 
         if (!token) {
             setError('Please login first');
@@ -135,39 +132,41 @@ export default function MainPage() {
                 apiKey: formData.apiKey
             };
 
-            const res = await fetch(`${API_URL}/api/chat/submit-form`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(submissionData)
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                if (res.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('authToken');
-                    router.push('/login');
-                    throw new Error('Session expired. Please login again.');
+            const res = await axios.post(
+                `${apiUrl}/api/chat/submit-form`,
+                submissionData,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 }
-                throw new Error(errorData.message || 'Failed to submit chat');
-            }
+            );
 
-            const data = await res.json();
-            setResponse(data);
-            toast.success('Message submitted successfully!');
+            if (res.data) {
+                setResponse(res.data);
+                if (res.data._id) {
+                    setChatId(res.data._id);
+                }
+                if (res.data.messages && res.data.messages.length > 0) {
+                    const lastMessage = res.data.messages[res.data.messages.length - 1];
+                    animateResponse(lastMessage.text);
+                }
+            }
 
         } catch (error) {
             console.error('Submit error:', error);
-            setError(error.message || 'An error occurred');
-            toast.error(error.message || 'Failed to submit message');
+            if (error.response?.status === 401) {
+                removeToken();
+                router.push('/login');
+                setError('Session expired. Please login again.');
+            } else {
+                setError(error.response?.data?.message || 'An error occurred');
+            }
         } finally {
             setLoading(false);
         }
     };
-
 
     const handleContinueChat = async () => {
         setLoading(true);
@@ -175,8 +174,16 @@ export default function MainPage() {
         setAnimatedText('');
         setError('');
 
+        const token = getToken();
+
+        if (!token) {
+            setError('Please login first');
+            setLoading(false);
+            router.push('/login');
+            return;
+        }
+
         try {
-            const token = getToken();
             const continueChatData = {
                 chatId,
                 followUpMessage,
@@ -188,10 +195,11 @@ export default function MainPage() {
                 continueChatData,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
+                        'Authorization': `Bearer ${token}`
+                    }
                 }
             );
+
             if (res.data && res.data.aiResponse) {
                 animateResponse(res.data.aiResponse);
                 setFollowUpMessage('');
@@ -200,14 +208,16 @@ export default function MainPage() {
             }
         } catch (error) {
             console.error('Error continuing chat:', error);
-            if (error.message === 'No token found') {
-                setError('Please login to continue');
+            if (error.response?.status === 401) {
+                removeToken();
                 router.push('/login');
+                setError('Session expired. Please login again.');
             } else {
                 setError('Failed to get response from AI. Please try again.');
             }
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const animateResponse = (text) => {
