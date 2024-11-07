@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from "jwt-decode";
 import axios from 'axios';
 import TypingResponse from '../components/TypingResponse';
 import { getToken, setToken, removeToken, isAuthenticated } from '../utils/auth';
@@ -54,11 +54,29 @@ export default function MainPage() {
 
     // Check authentication on component mount
     useEffect(() => {
-        if (!isAuthenticated()) {
-            router.push('/login');
-            return;
-        }
+        const checkAuth = async () => {
+            const token = getToken();
+            if (!token) {
+                await router.push('/login');
+                return;
+            }
+
+            try {
+                const decoded = jwtDecode(token); // Use imported jwtDecode
+                if (decoded.exp * 1000 < Date.now()) {
+                    removeToken();
+                    await router.push('/login');
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                removeToken();
+                await router.push('/login');
+            }
+        };
+
+        checkAuth();
     }, [router]);
+
 
     // Update axios interceptor
     useEffect(() => {
