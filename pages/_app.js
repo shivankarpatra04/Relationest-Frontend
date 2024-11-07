@@ -1,7 +1,7 @@
 // pages/_app.js
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import '../styles/globals.css';
 import Footer from '../components/Footer';
 import FloatingContactButton from '../components/FloatingContactButton';
