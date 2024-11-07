@@ -1,7 +1,7 @@
 // pages/_app.js
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import '../styles/globals.css';
 import Footer from '../components/Footer';
 import FloatingContactButton from '../components/FloatingContactButton';
@@ -38,6 +38,7 @@ function MyApp({ Component, pageProps }) {
                 });
             }
         };
+
         // Check authentication on route change
         router.events.on('routeChangeStart', handleRouteChange);
 
@@ -78,6 +79,52 @@ function MyApp({ Component, pageProps }) {
 
             {/* Global Components */}
             <FloatingContactButton />
+
+            {/* Toast Notifications */}
+            <Toaster
+                position="top-right"
+                toastOptions={{
+                    success: {
+                        style: {
+                            background: '#10B981',
+                            color: 'white',
+                        },
+                        duration: 5000,
+                        iconTheme: {
+                            primary: 'white',
+                            secondary: '#10B981',
+                        },
+                    },
+                    error: {
+                        style: {
+                            background: '#EF4444',
+                            color: 'white',
+                        },
+                        duration: 5000,
+                        iconTheme: {
+                            primary: 'white',
+                            secondary: '#EF4444',
+                        },
+                    },
+                    loading: {
+                        style: {
+                            background: '#3B82F6',
+                            color: 'white',
+                        },
+                    },
+                    default: {
+                        style: {
+                            background: '#1F2937',
+                            color: 'white',
+                        },
+                    },
+                    style: {
+                        borderRadius: '8px',
+                        padding: '16px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    },
+                }}
+            />
         </div>
     );
 }
