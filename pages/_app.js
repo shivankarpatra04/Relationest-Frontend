@@ -23,11 +23,12 @@ function MyApp({ Component, pageProps }) {
         pagesWithoutFooter: ['/']
     };
 
+    // Authentication check
     useEffect(() => {
         const handleRouteChange = (url) => {
             const path = url.split('?')[0];
-            if (!config.publicPaths.includes(path)) {
-                handleProtectedRoute(path);
+            if (!config.publicPaths.includes(path) && !isAuthenticated()) {
+                router.push('/login');
             }
         };
 
@@ -35,14 +36,15 @@ function MyApp({ Component, pageProps }) {
         router.events.on('routeChangeStart', handleRouteChange);
 
         // Check authentication on initial load
-        if (!config.publicPaths.includes(router.pathname)) {
-            handleProtectedRoute(router.pathname);
+        if (!config.publicPaths.includes(router.pathname) && !isAuthenticated()) {
+            router.push('/login');
         }
 
+        // Cleanup event listener
         return () => {
             router.events.off('routeChangeStart', handleRouteChange);
         };
-    }, [router, config.publicPaths]);
+    }, [router]);
 
     // Layout visibility checks
     const showNavbar = !config.pagesWithoutNavbar.includes(router.pathname);
@@ -50,16 +52,21 @@ function MyApp({ Component, pageProps }) {
 
     return (
         <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+            {/* Conditional Navbar */}
             {showNavbar && <Navbar />}
 
+            {/* Main content with consistent padding */}
             <main className="flex-grow">
                 <Component {...pageProps} />
             </main>
 
+            {/* Conditional Footer */}
             {showFooter && <Footer />}
 
+            {/* Global Components */}
             <FloatingContactButton />
 
+            {/* Toast Notifications */}
             <Toaster
                 position="top-right"
                 toastOptions={{
@@ -68,6 +75,7 @@ function MyApp({ Component, pageProps }) {
                             background: '#10B981',
                             color: 'white',
                         },
+                        duration: 5000,
                         iconTheme: {
                             primary: 'white',
                             secondary: '#10B981',
@@ -78,16 +86,28 @@ function MyApp({ Component, pageProps }) {
                             background: '#EF4444',
                             color: 'white',
                         },
+                        duration: 5000,
                         iconTheme: {
                             primary: 'white',
                             secondary: '#EF4444',
                         },
                     },
-                    duration: 3000,
+                    loading: {
+                        style: {
+                            background: '#3B82F6',
+                            color: 'white',
+                        },
+                    },
+                    default: {
+                        style: {
+                            background: '#1F2937',
+                            color: 'white',
+                        },
+                    },
                     style: {
                         borderRadius: '8px',
                         padding: '16px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                     },
                 }}
             />
