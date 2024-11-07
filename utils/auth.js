@@ -46,7 +46,7 @@ export const handleProtectedRoute = (pathname) => {
 
         // Show toast message
         toast.error(`You have to log in to see ${formattedPageName}`, {
-            duration: 3000,
+            duration: 1500,
         });
 
         // Redirect to login
