@@ -10,11 +10,12 @@ import { isAuthenticated } from '../utils/auth';
 
 function MyApp({ Component, pageProps }) {
     const router = useRouter();
-    // Pages that don't need authentication
-    const publicPaths = ['/login', '/register', '/', '/about', '/faq'];
 
-    // Pages that already have a navbar in their component
-    const pagesWithNavbar = ['/', '/main', '/ChatHistory'];
+    // Pages that don't need authentication
+    const publicPaths = ['/login', '/register', '/'];
+
+    // Check if current page is index/home page
+    const isHomePage = router.pathname === '/';
 
     useEffect(() => {
         const handleRouteChange = (url) => {
@@ -28,7 +29,6 @@ function MyApp({ Component, pageProps }) {
 
         router.events.on('routeChangeStart', handleRouteChange);
 
-        // Check authentication on initial load
         if (!publicPaths.includes(router.pathname) && !isAuthenticated()) {
             router.push('/login');
         }
@@ -38,27 +38,21 @@ function MyApp({ Component, pageProps }) {
         };
     }, [router, publicPaths]);
 
-    // Only show navbar if:
-    // 1. Not a public path (except about and faq)
-    // 2. Not a page that already has navbar
-    // 3. Not login or register page
-    const showNavbar = !pagesWithNavbar.includes(router.pathname) &&
-        router.pathname !== '/login' &&
-        router.pathname !== '/register';
-
     return (
         <div className="flex flex-col min-h-screen">
-            {/* Conditional Navbar */}
-            {showNavbar && <Navbar />}
+            {/* Show Navbar on all pages except index */}
+            {!isHomePage && <Navbar />}
 
             {/* Main content */}
             <main className="flex-grow">
                 <Component {...pageProps} />
             </main>
 
-            {/* Global components */}
+            {/* Show Footer on all pages except index */}
+            {!isHomePage && <Footer />}
+
+            {/* Always show FloatingContactButton */}
             <FloatingContactButton />
-            <Footer />
 
             {/* Toast notifications */}
             <Toaster
