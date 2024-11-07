@@ -4,16 +4,23 @@ export default function PrivacyPage() {
     const router = useRouter();
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-            <header className="bg-white border-b border-slate-200">
+        <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-slate-100">
+            <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
                 <div className="container mx-auto px-4">
                     <nav className="flex justify-between items-center h-16">
-                        <span
-                            onClick={() => router.push('/')}
-                            className="text-xl font-semibold bg-gradient-to-r from-rose-500 to-purple-600 bg-clip-text text-transparent cursor-pointer"
-                        >
-                            RelatioNest
-                        </span>
+                        <div className="flex items-center space-x-2">
+                            <span onClick={() => router.push('/')} className="text-xl font-semibold bg-gradient-to-r from-rose-500 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80">
+                                RelatioNest
+                            </span>
+                        </div>
+                        <div className="flex items-center space-x-6">
+                            <button
+                                onClick={() => router.push('/main')}
+                                className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
+                            >
+                                Back to Main
+                            </button>
+                        </div>
                     </nav>
                 </div>
             </header>
@@ -68,7 +75,7 @@ export default function PrivacyPage() {
                     <p className="text-slate-600">We use cookies and similar tracking technologies to improve your experience. You can control cookie settings through your browser preferences.</p>
 
                     <h2 className="text-2xl font-semibold mt-8 mb-4">8. Changes to This Policy</h2>
-                    <p className="text-slate-600">We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the &ldquo;Last updated&rdquo; date.</p>
+                    <p className="text-slate-600">We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the “Last updated” date.</p>
 
                     <h2 className="text-2xl font-semibold mt-8 mb-4">9. Contact Us</h2>
                     <p className="text-slate-600">If you have questions about this Privacy Policy, please contact us at:</p>
