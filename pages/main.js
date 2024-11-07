@@ -5,8 +5,6 @@ import axios from 'axios';
 import TypingResponse from '../components/TypingResponse';
 import { getToken, setToken, removeToken, isAuthenticated } from '../utils/auth';
 
-
-
 export default function MainPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({
@@ -23,24 +21,7 @@ export default function MainPage() {
         }
     });
 
-    // Define concern types
-    const concernTypes = [
-        'Communication Issues',
-        'Trust and Loyalty',
-        'Conflict Resolution',
-        'Commitment and Future Goals',
-        'Emotional Distance',
-        'Compatibility',
-        'Intimacy and Affection',
-        'Financial Stress',
-        'Personal Growth and Independence',
-        'Family or Social Influence',
-        'Mental Health and Well-being',
-        'Work-life Balance',
-        'Parenting and Family Planning',
-        'Long-Distance Relationship',
-        'Other'
-    ];
+    const concernTypes = [/* your concern types array */];
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://relationest-backend.vercel.app';
 
@@ -51,73 +32,102 @@ export default function MainPage() {
     const [followUpMessage, setFollowUpMessage] = useState('');
     const [error, setError] = useState('');
 
+    // Configure axios defaults and interceptors
+    useEffect(() => {
+        axios.defaults.baseURL = apiUrl;
 
-    // Check authentication on component mount
+        // Request interceptor
+        const requestInterceptor = axios.interceptors.request.use(
+            (config) => {
+                const token = getToken();
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
+                console.log('Request config:', {
+                    url: config.url,
+                    headers: config.headers,
+                    method: config.method
+                });
+                return config;
+            },
+            (error) => {
+                console.error('Request interceptor error:', error);
+                return Promise.reject(error);
+            }
+        );
+
+        // Response interceptor
+        const responseInterceptor = axios.interceptors.response.use(
+            (response) => {
+                console.log('Response received:', {
+                    status: response.status,
+                    data: response.data
+                });
+                return response;
+            },
+            (error) => {
+                console.error('Response interceptor error:', error.response);
+                if (error.response?.status === 401) {
+                    removeToken();
+                    router.push('/login');
+                }
+                return Promise.reject(error);
+            }
+        );
+
+        // Cleanup
+        return () => {
+            axios.interceptors.request.eject(requestInterceptor);
+            axios.interceptors.response.eject(responseInterceptor);
+        };
+    }, [apiUrl, router]);
+
+    // Authentication check
     useEffect(() => {
         const checkAuth = async () => {
-            const token = getToken();
-            if (!token) {
-                await router.push('/login');
-                return;
-            }
-
             try {
-                const decoded = jwtDecode(token); // Use imported jwtDecode
+                const token = getToken();
+                if (!token) {
+                    router.push('/login');
+                    return;
+                }
+
+                const decoded = jwtDecode(token);
                 if (decoded.exp * 1000 < Date.now()) {
+                    console.log('Token expired');
                     removeToken();
-                    await router.push('/login');
+                    router.push('/login');
+                } else {
+                    console.log('Token valid until:', new Date(decoded.exp * 1000));
                 }
             } catch (error) {
                 console.error('Auth check error:', error);
                 removeToken();
-                await router.push('/login');
+                router.push('/login');
             }
         };
 
         checkAuth();
     }, [router]);
 
-
-    // Update axios interceptor
-    useEffect(() => {
-        const interceptor = axios.interceptors.request.use(
-            (config) => {
-                const token = getToken();
-                if (token) {
-                    config.headers.Authorization = `Bearer ${token}`;
-                }
-                return config;
-            },
-            (error) => {
-                return Promise.reject(error);
-            }
-        );
-
-        // Cleanup interceptor on component unmount
-        return () => {
-            axios.interceptors.request.eject(interceptor);
-        };
-    }, []);
-
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         if (['gemini', 'openai', 'anthropic'].includes(name)) {
-            setFormData((prev) => ({
+            setFormData(prev => ({
                 ...prev,
                 apiKey: { ...prev.apiKey, [name]: value }
             }));
         } else if (name === 'selectedConcern') {
-            setFormData((prev) => ({
+            setFormData(prev => ({
                 ...prev,
                 selectedConcern: value,
                 concern: value === 'Other' ? prev.concern : value
             }));
         } else {
-            setFormData((prev) => ({ ...prev, [name]: value }));
+            setFormData(prev => ({ ...prev, [name]: value }));
         }
     };
 
-    // Update handleSubmit
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -125,14 +135,14 @@ export default function MainPage() {
         setAnimatedText('');
         setError('');
 
-        if (!isAuthenticated()) {
-            setError('Please login first');
-            setLoading(false);
-            router.push('/login');
-            return;
-        }
-
         try {
+            const token = getToken();
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            console.log('Submitting with token:', token);
+
             const submissionData = {
                 partnerName: formData.partnerName,
                 name: formData.name,
@@ -142,39 +152,34 @@ export default function MainPage() {
                 apiKey: formData.apiKey
             };
 
-            const token = getToken();
-            console.log('Using token for submission:', token); // Debug log
+            console.log('Sending data:', submissionData);
 
-            const res = await axios.post(
-                `${apiUrl}/api/chat/submit-form`,
-                submissionData,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            const res = await axios.post('/api/chat/submit-form', submissionData);
+            console.log('Response received:', res.data);
 
             if (res.data) {
-                setResponse(res.data);
                 if (res.data._id) {
                     setChatId(res.data._id);
                 }
-                if (res.data.messages && res.data.messages.length > 0) {
+                if (res.data.messages?.length > 0) {
                     const lastMessage = res.data.messages[res.data.messages.length - 1];
                     animateResponse(lastMessage.text);
+                } else if (res.data.text) {
+                    animateResponse(res.data.text);
                 }
+                setResponse(res.data);
             }
 
         } catch (error) {
             console.error('Submit error:', error);
+            const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+
             if (error.response?.status === 401) {
                 removeToken();
                 router.push('/login');
                 setError('Session expired. Please login again.');
             } else {
-                setError(error.response?.data?.message || 'An error occurred');
+                setError(errorMessage);
             }
         } finally {
             setLoading(false);
@@ -187,46 +192,39 @@ export default function MainPage() {
         setAnimatedText('');
         setError('');
 
-        const token = getToken();
-
-        if (!token) {
-            setError('Please login first');
-            setLoading(false);
-            router.push('/login');
-            return;
-        }
-
         try {
+            const token = getToken();
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
             const continueChatData = {
                 chatId,
                 followUpMessage,
                 apiKey: formData.apiKey,
             };
 
-            const res = await axios.post(
-                `${apiUrl}/api/chat/continue`,
-                continueChatData,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
+            console.log('Continuing chat with data:', continueChatData);
 
-            if (res.data && res.data.aiResponse) {
+            const res = await axios.post('/api/chat/continue', continueChatData);
+            console.log('Continue chat response:', res.data);
+
+            if (res.data?.aiResponse) {
                 animateResponse(res.data.aiResponse);
                 setFollowUpMessage('');
             } else {
-                throw new Error('Invalid response from server');
+                throw new Error('Invalid response format from server');
             }
         } catch (error) {
-            console.error('Error continuing chat:', error);
+            console.error('Continue chat error:', error);
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to continue chat';
+
             if (error.response?.status === 401) {
                 removeToken();
                 router.push('/login');
                 setError('Session expired. Please login again.');
             } else {
-                setError('Failed to get response from AI. Please try again.');
+                setError(errorMessage);
             }
         } finally {
             setLoading(false);
@@ -234,7 +232,7 @@ export default function MainPage() {
     };
 
     const animateResponse = (text) => {
-        console.log('Animated text:', text);
+        console.log('Animating response:', text);
         setAnimatedText(text);
         setResponse('');
     };
