@@ -1,6 +1,8 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
+import { Trash2, MessageSquare, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 
 const ChatHistory = () => {
     const router = useRouter();
@@ -82,159 +84,114 @@ const ChatHistory = () => {
         return 'AI Advisor';
     };
 
-    const formatText = (text) => {
-        return text.split('\n').map((line, i) => (
-            <p key={i} className="mb-2">
-                {line.split('**').map((part, j) => (
-                    j % 2 === 0 ? part : <strong key={j}>{part}</strong>
-                ))}
-            </p>
-        ));
-    };
-
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-slate-100">
-            <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-                <div className="container mx-auto px-4">
-                    <nav className="flex justify-between items-center h-16">
-                        <div className="flex items-center space-x-2">
-                            <span onClick={() => router.push('/')} className="text-xl font-semibold bg-gradient-to-r from-rose-500 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80">
-                                RelatioNest
-                            </span>
-                        </div>
-                        <div className="flex items-center space-x-6">
-                            <button
-                                onClick={() => router.push('/main')}
-                                className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
-                            >
-                                Back to Main
-                            </button>
-                        </div>
-                    </nav>
+        <main className="container mx-auto max-w-6xl flex-grow px-4 py-10">
+            <div className="mb-8 flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900">Your Conversations</h1>
+                    <p className="mt-1 text-sm text-slate-500">Revisit the advice from your past sessions.</p>
                 </div>
-            </header>
+                <button onClick={() => router.push('/main')} className="btn-ghost text-sm">
+                    <ArrowLeft className="h-4 w-4" /> New chat
+                </button>
+            </div>
 
-            <main className="flex-grow container mx-auto px-4 py-8 max-w-6xl">
-                {error && (
-                    <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-                        <p className="text-red-700">{error}</p>
-                    </div>
-                )}
+            {error && (
+                <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+                    <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" />
+                    <p className="text-sm text-red-700">{error}</p>
+                </div>
+            )}
 
-                {loading ? (
-                    <div className="text-center py-8">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-                        <p className="mt-4 text-slate-600">Loading chats...</p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-1">
-                            <div className="bg-white rounded-lg shadow-lg p-6">
-                                <h2 className="text-2xl font-semibold text-slate-800 mb-4">Your Conversations</h2>
-                                <div className="space-y-3">
-                                    {chats.map((chat) => (
+            {loading ? (
+                <div className="flex flex-col items-center py-20 text-slate-500">
+                    <Loader2 className="h-10 w-10 animate-spin text-purple-500" />
+                    <p className="mt-4">Loading your chats...</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    {/* List */}
+                    <div className="lg:col-span-1">
+                        <div className="card-glass max-h-[70vh] overflow-y-auto p-4">
+                            <div className="space-y-2">
+                                {chats.map((chat) => {
+                                    const active = selectedChat?._id === chat._id;
+                                    return (
                                         <div
                                             key={chat._id}
                                             onClick={() => handleChatClick(chat._id)}
-                                            className={`border rounded-lg p-4 cursor-pointer hover:bg-slate-50 transition-colors duration-200 relative ${selectedChat?._id === chat._id ? 'bg-purple-50 border-purple-500' : ''
-                                                }`}
+                                            className={`group cursor-pointer rounded-xl border p-4 transition-all duration-200 ${
+                                                active
+                                                    ? 'border-purple-300 bg-purple-50 shadow-sm'
+                                                    : 'border-transparent hover:border-slate-200 hover:bg-slate-50'
+                                            }`}
                                         >
-                                            <h3 className="font-bold text-lg mb-1">{chat.partnerName}</h3>
-                                            <p className="text-slate-600 text-sm mb-2 line-clamp-2">{chat.concern}</p>
-                                            <div className="flex justify-between items-center">
-                                                <p className="text-xs text-slate-500">
-                                                    {new Date(chat.createdAt).toLocaleDateString()}
-                                                </p>
+                                            <div className="flex items-start justify-between gap-2">
+                                                <h3 className="font-semibold text-slate-900">{chat.partnerName}</h3>
                                                 <button
                                                     onClick={(e) => handleDeleteChat(chat._id, e)}
-                                                    className="text-red-500 hover:text-red-700 text-sm font-medium"
+                                                    className="rounded-md p-1 text-slate-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
+                                                    aria-label="Delete chat"
                                                 >
-                                                    Delete
+                                                    <Trash2 className="h-4 w-4" />
                                                 </button>
+                                            </div>
+                                            <p className="mb-2 mt-1 line-clamp-2 text-sm text-slate-600">{chat.concern}</p>
+                                            <p className="text-xs text-slate-400">{new Date(chat.createdAt).toLocaleDateString()}</p>
+                                        </div>
+                                    );
+                                })}
+                                {chats.length === 0 && (
+                                    <div className="flex flex-col items-center py-12 text-center text-slate-400">
+                                        <MessageSquare className="mb-3 h-10 w-10" />
+                                        <p className="text-sm">No conversations yet.</p>
+                                        <button onClick={() => router.push('/main')} className="mt-3 text-sm font-medium text-purple-600 hover:text-purple-800">
+                                            Start your first chat
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Conversation */}
+                    <div className="lg:col-span-2">
+                        {selectedChat ? (
+                            <div className="card-glass animate-fade-up p-6 sm:p-8">
+                                <div className="mb-6 border-b border-slate-100 pb-4">
+                                    <h2 className="text-2xl font-bold text-slate-900">{selectedChat.partnerName}</h2>
+                                    <p className="mt-1 text-slate-500">{selectedChat.concern}</p>
+                                </div>
+                                <div className="space-y-4">
+                                    {selectedChat.messages.map((message, index) => (
+                                        <div
+                                            key={index}
+                                            className={`max-w-[85%] rounded-2xl p-4 ${
+                                                message.fromUser
+                                                    ? 'ml-auto bg-gradient-to-br from-rose-500 to-purple-600 text-white'
+                                                    : 'mr-auto border border-slate-100 bg-white'
+                                            }`}
+                                        >
+                                            <p className={`mb-1 text-xs font-semibold ${message.fromUser ? 'text-white/80' : 'text-purple-600'}`}>
+                                                {formatMessageSender(message, selectedChat)}
+                                            </p>
+                                            <div className={`prose prose-sm max-w-none prose-strong:font-semibold prose-li:my-0.5 ${message.fromUser ? 'prose-invert text-white' : 'text-slate-700'}`}>
+                                                <ReactMarkdown>{message.text}</ReactMarkdown>
                                             </div>
                                         </div>
                                     ))}
-                                    {chats.length === 0 && (
-                                        <p className="text-slate-500 text-center py-4">No chats found</p>
-                                    )}
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="lg:col-span-2">
-                            {selectedChat ? (
-                                <div className="bg-white rounded-lg shadow-lg p-6">
-                                    <div className="border-b pb-4 mb-4">
-                                        <h2 className="text-2xl font-semibold text-slate-800">{selectedChat.partnerName}</h2>
-                                        <p className="text-slate-600 mt-1">{selectedChat.concern}</p>
-                                    </div>
-                                    <div className="space-y-4">
-                                        {selectedChat.messages.map((message, index) => (
-                                            <div
-                                                key={index}
-                                                className={`p-4 rounded-lg ${message.fromUser
-                                                    ? 'bg-purple-50 ml-auto max-w-[80%]'
-                                                    : 'bg-slate-50 mr-auto max-w-[80%]'
-                                                    }`}
-                                            >
-                                                <p className={`font-semibold text-sm mb-1 ${message.fromUser ? 'text-purple-700' : 'text-slate-700'
-                                                    }`}>
-                                                    {formatMessageSender(message, selectedChat)}
-                                                </p>
-                                                <div className="text-slate-800 whitespace-pre-wrap">{formatText(message.text)}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="bg-white rounded-lg shadow-lg p-8 text-center text-slate-500">
-                                    Select a chat to view the conversation
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </main>
-
-            <footer className="bg-slate-900 text-slate-200 py-12">
-                <div className="container mx-auto px-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div>
-                            <h3 className="text-xl font-semibold mb-4">RelatioNest</h3>
-                            <p className="text-slate-400">Empowering stronger connections through understanding</p>
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-semibold mb-4">Quick Links</h3>
-                            <ul className="space-y-2">
-                                <li>
-                                    <button onClick={() => router.push('/about')} className="text-slate-400 hover:text-white transition-colors">
-                                        About Us
-                                    </button>
-                                </li>
-                                <li>
-                                    <button onClick={() => router.push('/contact')} className="text-slate-400 hover:text-white transition-colors">
-                                        Contact
-                                    </button>
-                                </li>
-                                <li>
-                                    <button onClick={() => router.push('/privacy')} className="text-slate-400 hover:text-white transition-colors">
-                                        Privacy Policy
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-semibold mb-4">Contact Us</h3>
-                            <p className="text-slate-400">support@relationshipadvisor.com</p>
-                            <p className="text-slate-400">(555) 123-4567</p>
-                        </div>
-                    </div>
-                    <div className="mt-8 pt-8 border-t border-slate-800 text-center text-slate-400">
-                        <p>© {new Date().getFullYear()} Relationship Advisor. All rights reserved.</p>
+                        ) : (
+                            <div className="card-glass flex flex-col items-center justify-center p-16 text-center text-slate-400">
+                                <MessageSquare className="mb-4 h-12 w-12" />
+                                <p>Select a conversation to view the advice.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
-            </footer>
-        </div>
+            )}
+        </main>
     );
 };
 

@@ -2,123 +2,99 @@
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { removeToken } from '../utils/auth';
+import { Heart, History, Info, HelpCircle, LogOut, Menu, X } from 'lucide-react';
 
 export default function Navbar() {
     const router = useRouter();
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleLogout = () => {
         removeToken();
         router.push('/login');
     };
 
-    return (
-        <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-            <div className="container mx-auto px-4">
-                <nav className="flex justify-between items-center h-16">
-                    <div className="flex items-center space-x-2">
-                        <span
-                            onClick={() => router.push('/')}
-                            className="text-xl font-semibold bg-gradient-to-r from-rose-500 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80"
-                        >
-                            RelatioNest
-                        </span>
-                    </div>
+    const links = [
+        { label: 'History', path: '/ChatHistory', icon: History },
+        { label: 'About', path: '/about', icon: Info },
+        { label: 'FAQ', path: '/faq', icon: HelpCircle },
+    ];
 
-                    {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center space-x-6">
-                        <button
-                            onClick={() => router.push('/ChatHistory')}
-                            className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
-                        >
-                            History
-                        </button>
-                        <button
-                            onClick={() => router.push('/about')}
-                            className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
-                        >
-                            About
-                        </button>
-                        <button
-                            onClick={() => router.push('/faq')}
-                            className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
-                        >
-                            FAQ
-                        </button>
-                        <button
-                            onClick={handleLogout}
-                            className="px-4 py-2 text-white bg-gradient-to-r from-rose-500 to-purple-600 rounded-lg hover:from-rose-600 hover:to-purple-700 transition-colors"
-                        >
+    const isActive = (path) => router.pathname === path;
+
+    return (
+        <header className="sticky top-0 z-50 border-b border-white/40 bg-white/70 backdrop-blur-xl">
+            <div className="container mx-auto px-4">
+                <nav className="flex h-16 items-center justify-between">
+                    <button
+                        onClick={() => router.push('/main')}
+                        className="group flex items-center gap-2"
+                        aria-label="Home"
+                    >
+                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-purple-600 text-white shadow-glow transition-transform group-hover:scale-110">
+                            <Heart className="h-5 w-5 fill-white" />
+                        </span>
+                        <span className="text-xl font-bold text-gradient">RelatioNest</span>
+                    </button>
+
+                    {/* Desktop */}
+                    <div className="hidden items-center gap-1 md:flex">
+                        {links.map(({ label, path }) => (
+                            <button
+                                key={path}
+                                onClick={() => router.push(path)}
+                                className={`relative px-4 py-2 text-sm font-medium transition-colors ${
+                                    isActive(path) ? 'text-purple-700' : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                            >
+                                {label}
+                                <span
+                                    className={`absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-gradient-to-r from-rose-500 to-purple-600 transition-transform duration-300 ${
+                                        isActive(path) ? 'scale-x-100' : 'scale-x-0'
+                                    }`}
+                                />
+                            </button>
+                        ))}
+                        <button onClick={handleLogout} className="btn-primary ml-2 px-4 py-2 text-sm">
+                            <LogOut className="h-4 w-4" />
                             Logout
                         </button>
                     </div>
 
-                    {/* Mobile Navigation */}
-                    <div className="md:hidden relative">
-                        <button
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="p-2 text-slate-600 hover:text-slate-900"
-                        >
-                            <svg
-                                className="w-6 h-6"
-                                fill="none"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                {isDropdownOpen ? (
-                                    <path d="M6 18L18 6M6 6l12 12" />
-                                ) : (
-                                    <path d="M4 6h16M4 12h16M4 18h16" />
-                                )}
-                            </svg>
-                        </button>
-
-                        {isDropdownOpen && (
-                            <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl">
-                                <button
-                                    onClick={() => {
-                                        router.push('/ChatHistory');
-                                        setIsDropdownOpen(false);
-                                    }}
-                                    className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 w-full text-left"
-                                >
-                                    History
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        router.push('/about');
-                                        setIsDropdownOpen(false);
-                                    }}
-                                    className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 w-full text-left"
-                                >
-                                    About
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        router.push('/faq');
-                                        setIsDropdownOpen(false);
-                                    }}
-                                    className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 w-full text-left"
-                                >
-                                    FAQ
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        handleLogout();
-                                        setIsDropdownOpen(false);
-                                    }}
-                                    className="block px-4 py-2 text-sm text-rose-600 hover:bg-slate-100 w-full text-left font-medium"
-                                >
-                                    Logout
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    {/* Mobile toggle */}
+                    <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
+                        aria-label="Menu"
+                    >
+                        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                    </button>
                 </nav>
             </div>
+
+            {/* Mobile menu */}
+            {isOpen && (
+                <div className="border-t border-slate-100 bg-white/95 backdrop-blur-xl md:hidden">
+                    <div className="container mx-auto space-y-1 px-4 py-3">
+                        {links.map(({ label, path, icon: Icon }) => (
+                            <button
+                                key={path}
+                                onClick={() => { router.push(path); setIsOpen(false); }}
+                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-purple-50 hover:text-purple-700"
+                            >
+                                <Icon className="h-4 w-4" />
+                                {label}
+                            </button>
+                        ))}
+                        <button
+                            onClick={() => { handleLogout(); setIsOpen(false); }}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50"
+                        >
+                            <LogOut className="h-4 w-4" />
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            )}
         </header>
     );
 }

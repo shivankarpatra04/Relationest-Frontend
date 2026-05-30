@@ -1,33 +1,13 @@
-import { useRouter } from 'next/router';
+import PublicHeader from '../components/PublicHeader';
 
 export default function PrivacyPage() {
-    const router = useRouter();
-
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-slate-100">
-            <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-                <div className="container mx-auto px-4">
-                    <nav className="flex justify-between items-center h-16">
-                        <div className="flex items-center space-x-2">
-                            <span onClick={() => router.push('/')} className="text-xl font-semibold bg-gradient-to-r from-rose-500 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80">
-                                RelatioNest
-                            </span>
-                        </div>
-                        <div className="flex items-center space-x-6">
-                            <button
-                                onClick={() => router.push('/main')}
-                                className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
-                            >
-                                Back to Main
-                            </button>
-                        </div>
-                    </nav>
-                </div>
-            </header>
+        <div className="flex min-h-screen flex-col">
+            <PublicHeader links={[{ label: 'Back to App', path: '/main', primary: true }]} />
 
-            <main className="container mx-auto px-4 py-12 max-w-4xl">
-                <h1 className="text-4xl font-bold text-slate-800 mb-8">Privacy Policy</h1>
-                <div className="prose prose-lg">
+            <main className="container mx-auto max-w-3xl flex-grow px-4 py-12">
+                <h1 className="mb-8 text-4xl font-extrabold tracking-tight text-slate-900">Privacy <span className="text-gradient">Policy</span></h1>
+                <div className="card-glass prose prose-slate max-w-none p-8 prose-headings:font-semibold prose-h2:text-xl">
                     <p className="text-slate-600">Last updated: {new Date().toLocaleDateString()}</p>
 
                     <h2 className="text-2xl font-semibold mt-8 mb-4">1. Introduction</h2>

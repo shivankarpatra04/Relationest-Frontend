@@ -17,7 +17,7 @@ function MyApp({ Component, pageProps }) {
         publicPaths: ['/login', '/signup', '/', '/about', '/faq'],
 
         // Pages that shouldn't show the navbar
-        pagesWithoutNavbar: ['/', '/login', '/signup', '/about', '/faq', '/privacy', '/ChatHistory', '/contact'],
+        pagesWithoutNavbar: ['/', '/login', '/signup', '/about', '/faq', '/privacy', '/contact'],
 
         // Pages that shouldn't show the footer
         pagesWithoutFooter: ['/']
@@ -49,7 +49,7 @@ function MyApp({ Component, pageProps }) {
     const showFooter = !config.pagesWithoutFooter.includes(router.pathname);
 
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+        <div className="app-bg flex min-h-screen flex-col">
             {showNavbar && <Navbar />}
 
             <main className="flex-grow">

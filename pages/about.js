@@ -1,80 +1,72 @@
-import { useRouter } from 'next/router';
+import PublicHeader from '../components/PublicHeader';
+import { Lightbulb, ShieldCheck, Globe, Target, Eye } from 'lucide-react';
+
+const values = [
+    { icon: Lightbulb, title: 'Innovation', desc: 'Continuously evolving our AI to provide cutting-edge relationship guidance.' },
+    { icon: ShieldCheck, title: 'Privacy', desc: 'The highest level of data protection and confidentiality for every user.' },
+    { icon: Globe, title: 'Accessibility', desc: 'Making thoughtful relationship advice available to everyone, everywhere.' },
+];
 
 export default function AboutPage() {
-    const router = useRouter();
-
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-slate-100">
-            <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-                <div className="container mx-auto px-4">
-                    <nav className="flex justify-between items-center h-16">
-                        <div className="flex items-center space-x-2">
-                            <span onClick={() => router.push('/')} className="text-xl font-semibold bg-gradient-to-r from-rose-500 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80">
-                                RelatioNest
-                            </span>
+        <div className="flex min-h-screen flex-col">
+            <PublicHeader
+                links={[
+                    { label: 'FAQ', path: '/faq' },
+                    { label: 'Get Started', path: '/login', primary: true },
+                ]}
+            />
+
+            <main className="container mx-auto max-w-4xl flex-grow px-4 py-16">
+                <section className="animate-fade-up text-center">
+                    <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 md:text-5xl">
+                        About <span className="text-gradient">RelatioNest</span>
+                    </h1>
+                    <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-600">
+                        An AI-powered relationship advisory platform, committed to transforming how people
+                        navigate their relationships in the digital age.
+                    </p>
+                </section>
+
+                <section className="mt-14 grid animate-fade-up animate-delay-100 gap-6 md:grid-cols-2">
+                    <div className="card-glass p-8">
+                        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-purple-600 text-white shadow-glow">
+                            <Target className="h-6 w-6" />
                         </div>
-                        <div className="flex items-center space-x-6">
-                            <button
-                                onClick={() => router.push('/main')}
-                                className="px-4 py-2 text-slate-600 hover:text-slate-900 transition-colors"
-                            >
-                                Back to Main
-                            </button>
-                        </div>
-                    </nav>
-                </div>
-            </header>
-            <main className="container mx-auto px-4 py-16 max-w-4xl flex-grow">
-                <div className="space-y-16">
-                    <section className="text-center">
-                        <h1 className="text-4xl font-bold text-slate-800 mb-6">About RelatioNest</h1>
-                        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                            RelatioNest is a cutting-edge AI-powered relationship advisory platform, committed to transforming how couples navigate their relationships in the digital age.
+                        <h2 className="mb-2 text-xl font-semibold text-slate-900">Our Mission</h2>
+                        <p className="text-slate-600">
+                            To empower people with personalized, AI-driven relationship guidance while
+                            maintaining the highest standards of privacy and ethics — making quality advice
+                            accessible to everyone.
                         </p>
-                    </section>
-
-                    <section className="grid md:grid-cols-2 gap-12">
-                        <div>
-                            <h2 className="text-2xl font-semibold text-slate-800 mb-4">Our Mission</h2>
-                            <p className="text-slate-600">
-                                We are dedicated to empowering couples with personalized, AI-driven relationship guidance while maintaining the highest standards of privacy and ethical considerations. Our goal is to make professional relationship advice accessible to everyone, anywhere.
-                            </p>
+                    </div>
+                    <div className="card-glass p-8">
+                        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-purple-600 text-white shadow-glow">
+                            <Eye className="h-6 w-6" />
                         </div>
-                        <div>
-                            <h2 className="text-2xl font-semibold text-slate-800 mb-4">Our Vision</h2>
-                            <p className="text-slate-600">
-                                To revolutionize relationship counseling by seamlessly blending artificial intelligence with human psychology, creating a future where every couple has the tools they need to build stronger, healthier relationships.
-                            </p>
-                        </div>
-                    </section>
-
-                    <section className="bg-white rounded-2xl p-8 shadow-sm">
-                        <h2 className="text-2xl font-semibold text-slate-800 mb-6 text-center">Our Core Values</h2>
-                        <div className="grid md:grid-cols-3 gap-8">
-                            <div className="text-center">
-                                <h3 className="font-semibold text-slate-800 mb-2">Innovation</h3>
-                                <p className="text-slate-600">Continuously evolving our AI technology to provide cutting-edge relationship guidance</p>
-                            </div>
-                            <div className="text-center">
-                                <h3 className="font-semibold text-slate-800 mb-2">Privacy</h3>
-                                <p className="text-slate-600">Ensuring the highest level of data protection and confidentiality for our users</p>
-                            </div>
-                            <div className="text-center">
-                                <h3 className="font-semibold text-slate-800 mb-2">Accessibility</h3>
-                                <p className="text-slate-600">Making professional relationship advice available to everyone, everywhere</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section className="text-center">
-                        <h2 className="text-2xl font-semibold text-slate-800 mb-6">Our Approach</h2>
-                        <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-16">
-                            We combine advanced AI technology with established relationship psychology principles to deliver personalized guidance that addresses the unique challenges each couple faces. Our platform adapts and learns to provide increasingly relevant advice over time.
+                        <h2 className="mb-2 text-xl font-semibold text-slate-900">Our Vision</h2>
+                        <p className="text-slate-600">
+                            To blend artificial intelligence with human psychology, creating a future where
+                            every couple has the tools they need to build stronger, healthier relationships.
                         </p>
-                    </section>
-                </div>
+                    </div>
+                </section>
+
+                <section className="mt-10 animate-fade-up animate-delay-200">
+                    <h2 className="mb-8 text-center text-2xl font-bold text-slate-900">Our Core Values</h2>
+                    <div className="grid gap-6 md:grid-cols-3">
+                        {values.map(({ icon: Icon, title, desc }) => (
+                            <div key={title} className="card-glass group p-6 text-center transition-transform hover:-translate-y-1">
+                                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-50 text-purple-600 transition-colors group-hover:bg-purple-100">
+                                    <Icon className="h-6 w-6" />
+                                </div>
+                                <h3 className="mb-2 font-semibold text-slate-900">{title}</h3>
+                                <p className="text-sm text-slate-600">{desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
             </main>
-
         </div>
     );
 }

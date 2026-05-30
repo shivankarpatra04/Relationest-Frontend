@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 import { setToken } from '../utils/auth';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, Mail, Lock } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -52,78 +52,77 @@ const AuthForm = ({ mode }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <h1 className="text-2xl font-bold text-center text-slate-800">
-                {mode === 'login' ? 'Login to RelatioNest' : 'Sign Up for RelatioNest'}
-            </h1>
+        <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="mb-2 text-center">
+                <h1 className="text-2xl font-bold text-slate-900">
+                    {mode === 'login' ? 'Welcome back' : 'Create your account'}
+                </h1>
+                <p className="mt-1 text-sm text-slate-500">
+                    {mode === 'login' ? 'Sign in to continue to RelatioNest' : 'Join RelatioNest in seconds'}
+                </p>
+            </div>
 
             {mode === 'signup' && (
-                <div>
-                    <label htmlFor="username" className="block text-sm font-medium text-slate-700">
-                        Username
-                    </label>
+                <div className="space-y-1.5">
+                    <label htmlFor="username" className="text-sm font-medium text-slate-700">Username</label>
+                    <div className="relative">
+                        <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <input
+                            id="username"
+                            type="text"
+                            placeholder="Your username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="input-field pl-10"
+                            required
+                            disabled={isLoading}
+                        />
+                    </div>
+                </div>
+            )}
+
+            <div className="space-y-1.5">
+                <label htmlFor="email" className="text-sm font-medium text-slate-700">Email</label>
+                <div className="relative">
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
-                        id="username"
-                        type="text"
-                        placeholder="Your username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                        id="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="input-field pl-10"
                         required
                         disabled={isLoading}
                     />
                 </div>
-            )}
-
-            <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700">
-                    Email
-                </label>
-                <input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                    required
-                    disabled={isLoading}
-                />
             </div>
 
-            <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-700">
-                    Password
-                </label>
-                <input
-                    id="password"
-                    type="password"
-                    placeholder="Your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                    required
-                    minLength="6"
-                    disabled={isLoading}
-                />
+            <div className="space-y-1.5">
+                <label htmlFor="password" className="text-sm font-medium text-slate-700">Password</label>
+                <div className="relative">
+                    <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                        id="password"
+                        type="password"
+                        placeholder="Your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="input-field pl-10"
+                        required
+                        minLength="6"
+                        disabled={isLoading}
+                    />
+                </div>
             </div>
 
-            <div>
-                <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-600 text-white rounded-lg shadow hover:from-rose-600 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                    {isLoading ? (
-                        <>
-                            <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                            {mode === 'login' ? 'Logging in...' : 'Signing up...'}
-                        </>
-                    ) : (
-                        mode === 'login' ? 'Login' : 'Sign Up'
-                    )}
-                </button>
-            </div>
+            <button type="submit" disabled={isLoading} className="btn-primary w-full">
+                {isLoading ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> {mode === 'login' ? 'Logging in...' : 'Signing up...'}</>
+                ) : (
+                    mode === 'login' ? 'Login' : 'Sign Up'
+                )}
+            </button>
         </form>
     );
 };

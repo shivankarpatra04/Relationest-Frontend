@@ -6,6 +6,7 @@ import TypingResponse from '../components/TypingResponse';
 import { getToken, setToken, removeToken, isAuthenticated } from '../utils/auth';
 import Quote from '../components/Quote';
 import withAuth from '../utils/withAuth';
+import { Sparkles, Loader2, Send, AlertCircle, MessageSquareHeart } from 'lucide-react';
 
 function MainPage() {
     const router = useRouter();
@@ -49,6 +50,7 @@ function MainPage() {
     const [chatId, setChatId] = useState('');
     const [followUpMessage, setFollowUpMessage] = useState('');
     const [error, setError] = useState('');
+    const [showApiKeys, setShowApiKeys] = useState(false);
 
     // Configure axios defaults and interceptors
     useEffect(() => {
@@ -61,30 +63,17 @@ function MainPage() {
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
                 }
-                console.log('Request config:', {
-                    url: config.url,
-                    headers: config.headers,
-                    method: config.method
-                });
                 return config;
             },
             (error) => {
-                console.error('Request interceptor error:', error);
                 return Promise.reject(error);
             }
         );
 
         // Response interceptor
         const responseInterceptor = axios.interceptors.response.use(
-            (response) => {
-                console.log('Response received:', {
-                    status: response.status,
-                    data: response.data
-                });
-                return response;
-            },
+            (response) => response,
             (error) => {
-                console.error('Response interceptor error:', error.response);
                 if (error.response?.status === 401) {
                     removeToken();
                     router.push('/login');
@@ -159,8 +148,6 @@ function MainPage() {
                 throw new Error('No authentication token found');
             }
 
-            console.log('Submitting with token:', token);
-
             const submissionData = {
                 partnerName: formData.partnerName,
                 name: formData.name,
@@ -170,10 +157,7 @@ function MainPage() {
                 apiKey: formData.apiKey
             };
 
-            console.log('Sending data:', submissionData);
-
             const res = await axios.post('/api/chat/submit-form', submissionData);
-            console.log('Response received:', res.data);
 
             if (res.data) {
                 if (res.data._id) {
@@ -222,10 +206,7 @@ function MainPage() {
                 apiKey: formData.apiKey,
             };
 
-            console.log('Continuing chat with data:', continueChatData);
-
             const res = await axios.post('/api/chat/continue', continueChatData);
-            console.log('Continue chat response:', res.data);
 
             if (res.data?.aiResponse) {
                 animateResponse(res.data.aiResponse);
@@ -259,136 +240,79 @@ function MainPage() {
 
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="container mx-auto max-w-3xl px-4 py-10">
             <Quote />
 
             {/* Main Form */}
-            <div className="mb-8 bg-white rounded-lg shadow-lg p-6">
-                <div className="mb-6">
-                    <h2 className="text-2xl font-semibold text-slate-800">Share Your Story</h2>
-                </div>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            placeholder="Your Name"
-                            className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors"
-                            required
-                        />
-                        <input
-                            type="text"
-                            name="partnerName"
-                            value={formData.partnerName}
-                            onChange={handleInputChange}
-                            placeholder="Partner's Name"
-                            className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors"
-                            required
-                        />
-                        <input
-                            type="number"
-                            name="age"
-                            value={formData.age}
-                            onChange={handleInputChange}
-                            placeholder="Your Age"
-                            className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors"
-                            required
-                        />
+            <div className="card-glass animate-fade-up p-6 sm:p-8">
+                <div className="mb-6 flex items-center gap-3">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-purple-600 text-white shadow-glow">
+                        <MessageSquareHeart className="h-6 w-6" />
+                    </span>
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-900">Share Your Story</h2>
+                        <p className="text-sm text-slate-500">Tell us what's going on — we'll help you figure out the next step.</p>
                     </div>
+                </div>
 
-                    <div className="bg-slate-50 rounded-lg p-6 space-y-4">
-                        <h3 className="text-sm font-semibold text-slate-700 mb-4">API Keys (Optional)</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <input
-                                type="text"
-                                name="gemini"
-                                value={formData.apiKey.gemini}
-                                onChange={handleInputChange}
-                                placeholder="Gemini API Key"
-                                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors"
-                            />
-                            <input
-                                type="text"
-                                name="openai"
-                                value={formData.apiKey.openai}
-                                onChange={handleInputChange}
-                                placeholder="OpenAI API Key"
-                                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors"
-                            />
-                            <input
-                                type="text"
-                                name="anthropic"
-                                value={formData.apiKey.anthropic}
-                                onChange={handleInputChange}
-                                placeholder="Anthropic API Key"
-                                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors"
-                            />
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-medium text-slate-700">Your name</label>
+                            <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g. Alex" className="input-field" required />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-medium text-slate-700">Partner's name</label>
+                            <input type="text" name="partnerName" value={formData.partnerName} onChange={handleInputChange} placeholder="e.g. Sam" className="input-field" required />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-medium text-slate-700">Your age</label>
+                            <input type="number" name="age" value={formData.age} onChange={handleInputChange} placeholder="e.g. 28" className="input-field" required />
                         </div>
                     </div>
 
-                    <div className="space-y-4">
-                        <select
-                            name="selectedConcern"
-                            value={formData.selectedConcern}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors bg-white"
-                            required
-                        >
+                    <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-slate-700">What's your concern?</label>
+                        <select name="selectedConcern" value={formData.selectedConcern} onChange={handleInputChange} className="input-field cursor-pointer" required>
                             <option value="">Select your concern</option>
                             {concernTypes.map((type) => (
-                                <option key={type} value={type}>
-                                    {type}
-                                </option>
+                                <option key={type} value={type}>{type}</option>
                             ))}
                         </select>
-
                         {formData.selectedConcern === 'Other' && (
-                            <textarea
-                                name="concern"
-                                value={formData.concern}
-                                onChange={handleInputChange}
-                                placeholder="Please describe your concern..."
-                                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors min-h-[120px]"
-                                required
-                            />
+                            <textarea name="concern" value={formData.concern} onChange={handleInputChange} placeholder="Please describe your concern..." className="input-field mt-2 min-h-[110px] resize-y" required />
                         )}
                     </div>
 
-                    <textarea
-                        name="message"
-                        value={formData.message}
-                        onChange={handleInputChange}
-                        placeholder="Your message..."
-                        className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors min-h-[80px]"
-                        required
-                    />
+                    <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-slate-700">Your message</label>
+                        <textarea name="message" value={formData.message} onChange={handleInputChange} placeholder="Describe the situation in your own words..." className="input-field min-h-[120px] resize-y" required />
+                    </div>
 
-                    <div className="flex justify-center">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className={`
-                                    px-8 py-3 rounded-lg text-white font-medium
-                                    bg-gradient-to-r from-rose-500 to-purple-600
-                                    hover:from-rose-600 hover:to-purple-700
-                                    focus:ring-2 focus:ring-purple-500 focus:ring-offset-2
-                                    transform transition-all
-                                    disabled:opacity-50 disabled:cursor-not-allowed
-                                    flex items-center space-x-2
-                                `}
-                        >
+                    {/* Advanced API keys */}
+                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/60">
+                        <button type="button" onClick={() => setShowApiKeys((v) => !v)} className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100/60">
+                            <span>Advanced — use your own API key (optional)</span>
+                            <span className={`text-slate-400 transition-transform duration-200 ${showApiKeys ? 'rotate-45' : ''}`}>+</span>
+                        </button>
+                        {showApiKeys && (
+                            <div className="space-y-3 border-t border-slate-200 p-4">
+                                <p className="text-xs text-slate-500">Leave blank to use the built-in advisor. Keys are sent securely and never stored.</p>
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                    <input type="password" autoComplete="off" name="gemini" value={formData.apiKey.gemini} onChange={handleInputChange} placeholder="Gemini API Key" className="input-field py-2.5 text-sm" />
+                                    <input type="password" autoComplete="off" name="openai" value={formData.apiKey.openai} onChange={handleInputChange} placeholder="OpenAI API Key" className="input-field py-2.5 text-sm" />
+                                    <input type="password" autoComplete="off" name="anthropic" value={formData.apiKey.anthropic} onChange={handleInputChange} placeholder="Anthropic API Key" className="input-field py-2.5 text-sm" />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex justify-center pt-2">
+                        <button type="submit" disabled={loading} className="btn-primary w-full sm:w-auto">
                             {loading ? (
-                                <span className="inline-flex items-center">
-                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Processing...
-                                </span>
+                                <><Loader2 className="h-5 w-5 animate-spin" /> Thinking...</>
                             ) : (
-                                'Get Advice'
+                                <><Sparkles className="h-5 w-5" /> Get Advice</>
                             )}
                         </button>
                     </div>
@@ -397,51 +321,36 @@ function MainPage() {
 
             {/* Error Message */}
             {error && (
-                <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-                    <p className="text-red-700">{error}</p>
+                <div className="mt-6 flex animate-fade-up items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+                    <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" />
+                    <p className="text-sm text-red-700">{error}</p>
                 </div>
             )}
 
             {/* AI Response */}
             {(animatedText || response) && (
-                <div className="mb-8 bg-white rounded-lg shadow-lg p-6">
-                    <h2 className="text-2xl font-semibold text-slate-800 mb-4">AI Response</h2>
+                <div className="card-glass mt-8 animate-fade-up p-6 sm:p-8">
+                    <div className="mb-4 flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-purple-600" />
+                        <h2 className="text-xl font-bold text-slate-900">Your Advice</h2>
+                    </div>
 
-                    <TypingResponse
-                        text={animatedText}
-                        onComplete={() => setResponse(animatedText)}
-                    />
+                    <TypingResponse text={animatedText} onComplete={() => setResponse(animatedText)} />
 
                     {response && (
-                        <div className="space-y-4">
+                        <div className="mt-6 space-y-3 border-t border-slate-100 pt-6">
+                            <label className="text-sm font-medium text-slate-700">Ask a follow-up</label>
                             <textarea
                                 value={followUpMessage}
                                 onChange={(e) => setFollowUpMessage(e.target.value)}
-                                placeholder="Your follow-up message..."
-                                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-colors min-h-[100px]"
+                                placeholder="Anything you'd like to dig into further?"
+                                className="input-field min-h-[90px] resize-y"
                             />
-                            <button
-                                onClick={handleContinueChat}
-                                disabled={loading || !followUpMessage}
-                                className={`
-                        px-6 py-2 rounded-lg text-white font-medium
-                        bg-purple-600 hover:bg-purple-700
-                        focus:ring-2 focus:ring-purple-500 focus:ring-offset-2
-                        transform transition-all
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                        flex items-center space-x-2
-                    `}
-                            >
+                            <button onClick={handleContinueChat} disabled={loading || !followUpMessage} className="btn-primary">
                                 {loading ? (
-                                    <span className="inline-flex items-center">
-                                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        Processing...
-                                    </span>
+                                    <><Loader2 className="h-5 w-5 animate-spin" /> Thinking...</>
                                 ) : (
-                                    'Continue Chat'
+                                    <><Send className="h-4 w-4" /> Continue Chat</>
                                 )}
                             </button>
                         </div>
